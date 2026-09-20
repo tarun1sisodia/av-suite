@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { AppShell } from '../../../../components/layout/AppShell';
 import { usePatient, useDeletePatient } from '../../../../features/patients/api';
 import { useAuthStore } from '../../../../store';
-import { getPermissionsForRole, canAccessModule } from '../../../../config/permissions';
+import { getPermissionsForRole, canAccessModule, hasCapability } from '../../../../config/permissions';
 import { AccessRestricted } from '../../../../components/ui/AccessRestricted';
 import { TreatmentsTab } from '../../../../features/patients/components/TreatmentsTab';
 import { SoapNotesTab } from '../../../../features/patients/components/SoapNotesTab';
@@ -206,6 +206,7 @@ export default function PatientWorkspacePage() {
                 <span>WA Session Report</span>
               </button>
 
+              {hasCapability('posture.create') && (
               <a
                 href={`${(process.env.NEXT_PUBLIC_POSTURE_APP_URL || 'http://localhost:3002').replace(/\/+$/, '')}/analyze?patient_id=${patient.id}`}
                 target="_blank"
@@ -215,7 +216,9 @@ export default function PatientWorkspacePage() {
                 <Camera className="w-3.5 h-3.5" />
                 <span>AI Posture Analysis</span>
               </a>
+              )}
 
+              {hasCapability('exercises.view') && (
               <a
                 href={`${(process.env.NEXT_PUBLIC_EXERCISE_APP_URL || 'http://localhost:3001').replace(/\/+$/, '')}/prescribe?patient_id=${patient.id}`}
                 target="_blank"
@@ -225,7 +228,9 @@ export default function PatientWorkspacePage() {
                 <Dumbbell className="w-3.5 h-3.5" />
                 <span>Exercise Library</span>
               </a>
+              )}
 
+              {hasCapability('prescriptions.create') && (
               <button
                 onClick={handleGenerateRx}
                 disabled={isRxLoading || createRx.isPending || generatePdf.isPending}
@@ -234,6 +239,7 @@ export default function PatientWorkspacePage() {
                 <FileCheck className="w-3.5 h-3.5" />
                 <span>Auto-Rx</span>
               </button>
+              )}
 
               {getPermissionsForRole(role).actions.createEditPatient && (
                 <button
@@ -314,6 +320,7 @@ export default function PatientWorkspacePage() {
               <p className="text-xs text-slate-500 max-w-md mx-auto">
                 Generates a branded PDF prescription containing clinic logo, diagnosis history, and exercise routine.
               </p>
+              {hasCapability('prescriptions.view') && (
               <button
                 onClick={handleGenerateRx}
                 disabled={generatePdf.isPending || createRx.isPending || isRxLoading}
@@ -322,6 +329,7 @@ export default function PatientWorkspacePage() {
                 <FileCheck className="w-4 h-4" />
                 <span>{generatePdf.isPending ? 'Generating...' : 'Generate Prescription PDF'}</span>
               </button>
+              )}
             </div>
           )}
 

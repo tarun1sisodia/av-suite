@@ -9,7 +9,7 @@ export function CommandBar() {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const router = useRouter();
-  const { data: response } = usePatients(search, 1, 5);
+  const { data: response } = usePatients(search, 1, 5, isOpen);
   const filteredPatients = response?.data || [];
 
   useEffect(() => {

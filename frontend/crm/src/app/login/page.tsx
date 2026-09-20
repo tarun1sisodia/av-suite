@@ -10,6 +10,7 @@ import { useAuthStore } from '../../store';
 import { setStoredToken, getStoredToken, isTokenExpired } from '../../lib/auth';
 import { apiClient } from '../../lib/api-client';
 import { Stethoscope, Lock, Mail, Loader2, Eye, EyeOff } from 'lucide-react';
+import { motion } from 'motion/react';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -84,7 +85,12 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 border border-slate-700">
+      <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 24, mass: 1 }}
+        className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 border border-slate-700"
+      >
         {/* Header */}
         <div className="flex flex-col items-center text-center mb-8">
           <div className="w-12 h-12 rounded-xl bg-teal-600 flex items-center justify-center text-white mb-3 shadow-lg shadow-teal-500/30">
@@ -157,7 +163,7 @@ export default function LoginPage() {
             )}
           </button>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -2,10 +2,10 @@
 
 import React, { useState } from 'react';
 import { AppShell } from '../../../components/layout/AppShell';
-import { useLeads, useUpdateLeadStage, useConvertLead } from '../../../features/leads/api';
+import { useLeads, useUpdateLeadStage, useConvertLead, useDeleteLead } from '../../../features/leads/api';
 import { AddLeadSlideOver } from '../../../features/leads/components/AddLeadSlideOver';
 import { Lead, LeadStage } from '../../../types/api';
-import { Plus, UserCheck, Phone, Mail, Search, List, LayoutGrid, CalendarClock } from 'lucide-react';
+import { Plus, UserCheck, Phone, Mail, Search, List, LayoutGrid, CalendarClock, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '../../../store';
 import { canAccessModule, hasCapability } from '../../../config/permissions';
@@ -24,10 +24,12 @@ export default function LeadsPage() {
   const canCreateLead = hasCapability('leads.create');
   const canConvertLead = hasCapability('leads.convert');
   const canEditLead = hasCapability('leads.edit');
+  const canDeleteLead = hasCapability('leads.delete');
 
   const { data: leads = [], isLoading } = useLeads(undefined, hasAccess);
   const updateStage = useUpdateLeadStage();
   const convertLead = useConvertLead();
+  const deleteLead = useDeleteLead();
   
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
@@ -40,6 +42,17 @@ export default function LeadsPage() {
     } catch (err) {
       console.error(err);
       toast.error('Failed to convert lead');
+    }
+  };
+
+  const handleDeleteLead = async (leadId: string, leadName: string) => {
+    if (!window.confirm(`Are you sure you want to delete lead "${leadName}"?`)) return;
+    try {
+      await deleteLead.mutateAsync(leadId);
+      toast.success(`Lead ${leadName} deleted successfully`);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to delete lead');
     }
   };
 
@@ -211,6 +224,7 @@ export default function LeadsPage() {
                             </select>
                           </td>
                           <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
                             {lead.stage !== 'converted' && !lead.converted_patient_id ? (
                               canConvertLead ? (
                                 <button
@@ -229,6 +243,16 @@ export default function LeadsPage() {
                                 Converted
                               </span>
                             )}
+                            {canDeleteLead && (
+                              <button
+                                onClick={() => handleDeleteLead(lead.id, lead.name)}
+                                className="p-1.5 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-md transition-colors cursor-pointer"
+                                title="Delete Lead"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                            </div>
                           </td>
                         </tr>
                       );
@@ -319,6 +343,15 @@ export default function LeadsPage() {
                               >
                                 <UserCheck className="w-3.5 h-3.5" />
                                 <span>Convert</span>
+                              </button>
+                            )}
+                            {canDeleteLead && (
+                              <button
+                                onClick={() => handleDeleteLead(lead.id, lead.name)}
+                                className="p-1.5 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-md transition-colors cursor-pointer"
+                                title="Delete Lead"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             )}
                           </div>

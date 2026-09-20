@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AppProviders } from '../providers/AppProviders';
+import { MicrosoftClarity } from '../components/analytics/MicrosoftClarity';
 
 export const metadata: Metadata = {
   title: 'AV Suite CRM',
@@ -14,7 +15,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">
+      <body className="antialiased scroll-smooth">
+        <MicrosoftClarity />
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

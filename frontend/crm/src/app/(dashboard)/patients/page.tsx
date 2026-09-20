@@ -12,6 +12,7 @@ import { Plus, Phone } from 'lucide-react';
 import { useAuthStore } from '../../../store';
 import { canAccessModule, canPerformAction } from '../../../config/permissions';
 import { AccessRestricted } from '../../../components/ui/AccessRestricted';
+import { MotionPage, MotionCardGrid, MotionCard, MotionButton } from '../../../components/motion';
 
 export default function PatientsPage() {
   const role = useAuthStore((s) => s.role);
@@ -99,7 +100,7 @@ export default function PatientsPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6">
+      <MotionPage className="space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Patients Directory</h1>
@@ -119,13 +120,13 @@ export default function PatientsPage() {
             </select>
 
             {canPerformAction('createEditPatient') && (
-              <button
+              <MotionButton
                 onClick={() => setIsAddOpen(true)}
                 className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium text-sm rounded-lg flex items-center gap-2 transition-colors cursor-pointer shadow-sm"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add Patient</span>
-              </button>
+              </MotionButton>
             )}
           </div>
         </div>
@@ -148,7 +149,7 @@ export default function PatientsPage() {
         />
 
         <AddPatientSlideOver isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} />
-      </div>
+      </MotionPage>
     </AppShell>
   );
 }

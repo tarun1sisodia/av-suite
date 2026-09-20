@@ -22,8 +22,13 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       return false;
     }
 
-    setToken(token);
-    await useAuthStore.getState().fetchMe();
+    // Only call setToken (which triggers fetchMe) if not already authenticated
+    // to avoid a redundant second fetchMe call on page reload
+    const state = useAuthStore.getState();
+    if (!state.isAuthenticated || Object.keys(state.capabilities).length === 0) {
+      setToken(token);
+      await useAuthStore.getState().fetchMe();
+    }
     setIsChecking(false);
     return true;
   }, [router, setToken]);

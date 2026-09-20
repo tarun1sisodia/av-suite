@@ -8,6 +8,7 @@ import { treatmentSessionFormSchema, TreatmentSessionFormValues } from '../../..
 import { SlideOver } from '../../../components/ui/SlideOver';
 import { Plus, Calendar, Activity, FileText } from 'lucide-react';
 import { useAuthStore } from '../../../store';
+import { hasCapability } from '../../../config/permissions';
 
 import { useTreatments, useCreateTreatmentSession } from '../../treatments/api';
 
@@ -58,13 +59,15 @@ export function TreatmentsTab({ patientId }: { patientId: string }) {
           <h3 className="text-base font-bold text-slate-900 dark:text-white">Treatment Sessions</h3>
           <p className="text-xs text-slate-500">Physical therapy & rehabilitation logs</p>
         </div>
-        <button
-          onClick={() => setIsSlideOpen(true)}
-          className="px-3.5 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium text-xs rounded-lg flex items-center gap-1.5 cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Session</span>
-        </button>
+        {hasCapability('treatments.create') && (
+          <button
+            onClick={() => setIsSlideOpen(true)}
+            className="px-3.5 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium text-xs rounded-lg flex items-center gap-1.5 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>New Session</span>
+          </button>
+        )}
       </div>
 
       {/* Session Cards List */}

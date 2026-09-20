@@ -6,13 +6,11 @@ import { CommandBar } from './CommandBar';
 import { AuthGuard } from '../auth/AuthGuard';
 import { useUiStore, useAuthStore } from '../../store';
 import { Search } from 'lucide-react';
-import { useClinicSettings } from '../../features/settings/api';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const isSidebarOpen = useUiStore((s) => s.isSidebarOpen);
   const clinic = useAuthStore((s) => s.clinic);
-  const { data: clinicSettings } = useClinicSettings();
-  const effectiveClinic = clinic || clinicSettings;
+  const effectiveClinic = clinic;
 
   React.useEffect(() => {
     if (effectiveClinic?.branding_color) {

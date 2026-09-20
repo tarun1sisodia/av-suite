@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { SoapAssessment } from '../../../types/api';
 import { useAssessments, useCreateAssessment, useUpdateAssessment } from '../../assessments/api';
 import { useAuthStore } from '../../../store';
+import { hasCapability } from '../../../config/permissions';
 import { CheckCircle2, Lock, Unlock, Save, FileCheck, Stethoscope, Heart, Zap, Baby, Activity } from 'lucide-react';
 
 interface SpecialtyOption {
@@ -113,8 +114,8 @@ export function SoapNotesTab({
   };
 
   const handleReopen = async () => {
-    if (role !== 'admin') {
-      toast.error('Only Admins can re-open finalized clinical notes');
+    if (!hasCapability('assessments.edit')) {
+      toast.error('You do not have permission to re-open finalized clinical notes');
       return;
     }
     try {
@@ -172,23 +173,25 @@ export function SoapNotesTab({
 
         <div className="flex items-center gap-3">
           {isFinalized ? (
-            role === 'admin' && (
+            hasCapability('assessments.edit') && (
               <button
                 onClick={handleReopen}
                 className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs rounded-lg flex items-center gap-1.5 cursor-pointer"
               >
                 <Unlock className="w-3.5 h-3.5" />
-                <span>Re-open (Admin Only)</span>
+                <span>Re-open Note</span>
               </button>
             )
           ) : (
-            <button
-              onClick={handleFinalize}
-              className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs rounded-lg flex items-center gap-1.5 shadow-sm cursor-pointer"
-            >
-              <FileCheck className="w-4 h-4" />
-              <span>Finalize & Lock Note</span>
-            </button>
+            (hasCapability('assessments.create') || hasCapability('assessments.edit')) && (
+              <button
+                onClick={handleFinalize}
+                className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs rounded-lg flex items-center gap-1.5 shadow-sm cursor-pointer"
+              >
+                <FileCheck className="w-4 h-4" />
+                <span>Finalize & Lock Note</span>
+              </button>
+            )
           )}
         </div>
       </div>

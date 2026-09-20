@@ -19,7 +19,6 @@ import {
 } from 'lucide-react';
 import { useAuthStore, useUiStore } from '../../store';
 import { canAccessModule, ModuleVisibility } from '../../config/permissions';
-import { useClinicSettings } from '../../features/settings/api';
 
 interface NavItem {
   label: string;
@@ -46,14 +45,13 @@ export function SidebarNavigation() {
   const clinic = useAuthStore((s) => s.clinic);
   const logout = useAuthStore((s) => s.logout);
   const { isSidebarOpen, toggleSidebar } = useUiStore();
-  const { data: clinicSettings } = useClinicSettings();
 
-  const effectiveClinic = clinic || clinicSettings;
+  const effectiveClinic = clinic;
   const visibleItems = NAV_ITEMS.filter((item) => canAccessModule(item.moduleKey));
 
   return (
     <aside
-      className={`fixed top-0 left-0 bottom-0 z-30 flex flex-col bg-[var(--brand-navy)] text-white transition-all duration-200 ${
+      className={`fixed top-0 left-0 bottom-0 z-30 flex flex-col bg-[var(--brand-navy)] text-white transition-[width] duration-200 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${
         isSidebarOpen ? 'w-64' : 'w-16'
       }`}
     >
@@ -104,9 +102,9 @@ export function SidebarNavigation() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
                 isActive
-                  ? 'bg-teal-600 text-white shadow-sm'
+                  ? 'bg-teal-600 text-white shadow-sm shadow-teal-600/20'
                   : 'text-slate-200 hover:bg-white/10 hover:text-white'
               }`}
               title={!isSidebarOpen ? item.label : undefined}
@@ -125,7 +123,7 @@ export function SidebarNavigation() {
             logout();
             window.location.replace('/login');
           }}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-rose-300 hover:bg-rose-500/20 transition-colors"
+          className="btn-press w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-rose-300 hover:bg-rose-500/20 transition-colors"
           title={!isSidebarOpen ? 'Logout' : undefined}
         >
           <LogOut className="w-5 h-5 shrink-0" />

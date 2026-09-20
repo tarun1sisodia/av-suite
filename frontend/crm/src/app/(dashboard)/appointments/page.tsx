@@ -44,6 +44,8 @@ export default function AppointmentsPage() {
   const [requests, setRequests] = useState<BookingRequest[]>([]);
 
   const canViewBookingRequests = hasCapability('booking.view');
+  const canApproveBookingRequests = hasCapability('booking.approve');
+  const canEditAppointments = hasCapability('appointments.edit');
 
   // Fetch pending appointment requests from backend on mount (only for authorized roles)
   React.useEffect(() => {
@@ -252,23 +254,27 @@ export default function AppointmentsPage() {
                     </div>
 
                     <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
-                      <button
-                        onClick={() => setRescheduleAppointment(apt)}
-                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors"
-                      >
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>Reschedule</span>
-                      </button>
-                      <select
-                        value={apt.status}
-                        onChange={(e) => handleStatusChange(apt.id, e.target.value as AppointmentStatus)}
-                        className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold uppercase text-slate-700 dark:text-slate-200"
-                      >
-                        <option value="scheduled">Scheduled</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                        <option value="no_show">No Show</option>
-                      </select>
+                      {canEditAppointments && (
+                        <button
+                          onClick={() => setRescheduleAppointment(apt)}
+                          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors"
+                        >
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>Reschedule</span>
+                        </button>
+                      )}
+                      {canEditAppointments && (
+                        <select
+                          value={apt.status}
+                          onChange={(e) => handleStatusChange(apt.id, e.target.value as AppointmentStatus)}
+                          className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold uppercase text-slate-700 dark:text-slate-200"
+                        >
+                          <option value="scheduled">Scheduled</option>
+                          <option value="completed">Completed</option>
+                          <option value="cancelled">Cancelled</option>
+                          <option value="no_show">No Show</option>
+                        </select>
+                      )}
                     </div>
                   </div>
                 ))
@@ -327,7 +333,7 @@ export default function AppointmentsPage() {
                       </p>
                     </div>
 
-                    {req.status === 'pending' && (
+                    {req.status === 'pending' && canApproveBookingRequests && (
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleRejectRequest(req)}

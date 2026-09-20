@@ -38,6 +38,7 @@ async def create_prescription(
     prescription_in: PrescriptionCreate,
     user: CurrentUserDep,
     db: AsyncSession = Depends(get_db),
+    scope: CapabilityScope = Depends(require_capability("prescriptions.create")),
 ):
     """
     Creates a new exercise prescription for a patient.
