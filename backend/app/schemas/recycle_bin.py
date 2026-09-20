@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 
 class RecycleBinItemResponse(BaseModel):
@@ -14,6 +14,16 @@ class RecycleBinItemResponse(BaseModel):
     title: str = Field(..., description="Display title or name of the deleted entity.")
     deleted_at: datetime = Field(..., description="Timestamp when entity was soft-deleted.")
     deleted_by: UUID | None = Field(default=None, description="UUID of staff user who performed soft-deletion.")
+
+    @computed_field
+    @property
+    def name(self) -> str:
+        return self.title
+
+    @computed_field
+    @property
+    def resource(self) -> str:
+        return self.resource_type
 
     model_config = ConfigDict(from_attributes=True)
 

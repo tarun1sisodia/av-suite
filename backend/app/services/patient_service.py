@@ -354,11 +354,15 @@ async def delete_patient(
     try:
         logger.info(f"Soft deleting patient {patient_id} from clinic {clinic_id}")
         repo = PatientRepository(db)
-        patient = await repo.get_by_patient_id(uuid.UUID(patient_id), clinic_id=uuid.UUID(clinic_id))
+        patient = await repo.get_by_id(uuid.UUID(patient_id), clinic_id=uuid.UUID(clinic_id), include_deleted=True)
         if not patient:
             from fastapi import HTTPException
             raise HTTPException(status_code=404, detail="Patient not found")
             
+        if patient.deleted_at is not None:
+            logger.info(f"Patient {patient_id} is already soft-deleted")
+            return
+
         deleted_by = uuid.UUID(user_id) if user_id else None
         await repo.soft_delete_patient(patient, deleted_by=deleted_by)
         logger.info(f"Patient {patient_id} deleted successfully")

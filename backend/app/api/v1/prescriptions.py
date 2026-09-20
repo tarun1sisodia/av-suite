@@ -51,8 +51,11 @@ async def create_prescription(
         clinic_id = request.state.clinic_id
         physio_id = user.id
 
+        c_uuid = uuid.UUID(clinic_id) if isinstance(clinic_id, str) else clinic_id
+        p_uuid = uuid.UUID(physio_id) if isinstance(physio_id, str) else physio_id
+
         prescription = await prescription_service.create_prescription(
-            db, uuid.UUID(clinic_id), uuid.UUID(physio_id), prescription_in
+            db, c_uuid, p_uuid, prescription_in
         )
         return ResponseEnvelope(data=prescription)
     except HTTPException:

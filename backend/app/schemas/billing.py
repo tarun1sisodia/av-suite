@@ -146,8 +146,8 @@ class InvoiceBase(BaseModel):
 
     patient_id: UUID
     appointment_id: UUID | None = None
-    invoice_number: str
-    issue_date: datetime
+    invoice_number: str | None = None
+    issue_date: datetime | None = None
     due_date: datetime | None = None
     discount_amount: Decimal = Field(default=Decimal("0.00"), ge=Decimal("0.00"))
     tax_amount: Decimal = Field(default=Decimal("0.00"), ge=Decimal("0.00"))

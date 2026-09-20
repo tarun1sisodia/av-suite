@@ -23,6 +23,8 @@ export function RecordPaymentSlideOver({ isOpen, onClose }: RecordPaymentSlideOv
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     reset,
     formState: { errors },
   } = useForm<PaymentFormValues>({
@@ -37,6 +39,18 @@ export function RecordPaymentSlideOver({ isOpen, onClose }: RecordPaymentSlideOv
       notes: '',
     },
   });
+
+  React.useEffect(() => {
+    if (invoices.length > 0 && !watch('invoice_id')) {
+      setValue('invoice_id', invoices[0].id);
+    }
+  }, [invoices, setValue, watch]);
+
+  React.useEffect(() => {
+    if (patients.length > 0 && !watch('patient_id')) {
+      setValue('patient_id', patients[0].id);
+    }
+  }, [patients, setValue, watch]);
 
   const onSubmit = async (values: PaymentFormValues) => {
     try {
@@ -61,12 +75,14 @@ export function RecordPaymentSlideOver({ isOpen, onClose }: RecordPaymentSlideOv
             {...register('invoice_id')}
             className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm"
           >
+            <option value="">Select an invoice</option>
             {invoices.map((inv) => (
               <option key={inv.id} value={inv.id}>
                 {inv.invoice_number} (Total: ₹{inv.total_amount}, Paid: ₹{inv.paid_amount})
               </option>
             ))}
           </select>
+          {errors.invoice_id && <p className="text-xs text-rose-500 mt-1">{errors.invoice_id.message}</p>}
         </div>
 
         <div>
@@ -77,12 +93,14 @@ export function RecordPaymentSlideOver({ isOpen, onClose }: RecordPaymentSlideOv
             {...register('patient_id')}
             className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm"
           >
+            <option value="">Select a patient</option>
             {patients.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.first_name} {p.last_name} ({p.phone})
+                {p.first_name} {p.last_name} ({p.phone}) {p.deleted_at ? '[Soft-deleted]' : ''}
               </option>
             ))}
           </select>
+          {errors.patient_id && <p className="text-xs text-rose-500 mt-1">{errors.patient_id.message}</p>}
         </div>
 
         <div className="grid grid-cols-2 gap-4">

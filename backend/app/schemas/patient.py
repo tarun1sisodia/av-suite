@@ -121,5 +121,6 @@ class PatientRead(PatientBase):
     user_id: Optional[uuid.UUID]
     created_at: datetime
     updated_at: datetime
+    deleted_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)

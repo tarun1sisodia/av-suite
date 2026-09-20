@@ -14,7 +14,7 @@ import { ProgressionTab } from '../../../../features/patients/components/Progres
 import { EditPatientSlideOver } from '../../../../features/patients/components/EditPatientSlideOver';
 import { WhatsAppButton, openWhatsApp } from '../../../../components/ui/WhatsAppButton';
 import { ArrowLeft, FileText, CreditCard, Clock, Stethoscope, MessageSquare, TrendingDown, Activity, FileCheck, Camera, Dumbbell, Edit2, Trash2 } from 'lucide-react';
-import { API_BASE_URL } from '../../../../lib/api-client';
+import { apiClient, API_BASE_URL } from '../../../../lib/api-client';
 import { getStoredToken } from '../../../../lib/auth';
 import { toast } from 'sonner';
 import { usePrescriptions, useCreatePrescription, useGeneratePrescriptionPdf } from '../../../../features/prescriptions/api';
@@ -157,6 +157,37 @@ export default function PatientWorkspacePage() {
           <span>Back to Patients Directory</span>
         </button>
 
+        {/* Soft-deleted Alert Banner */}
+        {patient.deleted_at && (
+          <div className="p-4 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 rounded-xl flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 text-rose-800 dark:text-rose-200 text-sm">
+              <Trash2 className="w-5 h-5 text-rose-600 shrink-0" />
+              <div>
+                <p className="font-bold">This patient is soft-deleted</p>
+                <p className="text-xs text-rose-600 dark:text-rose-400">
+                  This record was deleted on {new Date(patient.deleted_at).toLocaleString()} and is currently in the Recycle Bin.
+                </p>
+              </div>
+            </div>
+            {hasCapability('recyclebin.restore') && (
+              <button
+                onClick={async () => {
+                  try {
+                    await apiClient.post(`/recycle-bin/patient/${patient.id}/restore`);
+                    toast.success('Patient restored successfully');
+                    window.location.reload();
+                  } catch {
+                    toast.error('Failed to restore patient');
+                  }
+                }}
+                className="px-3 py-1.5 bg-white dark:bg-slate-900 hover:bg-rose-100 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-700 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+              >
+                Restore Patient
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Sticky Patient Workspace Header */}
         <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs space-y-4 sticky top-16 z-10">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -170,6 +201,15 @@ export default function PatientWorkspacePage() {
                   <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
                     {patient.first_name} {patient.last_name}
                   </h1>
+                  {patient.deleted_at && (
+                    <span
+                      title={`Soft-deleted on ${new Date(patient.deleted_at).toLocaleString()}`}
+                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200 border border-rose-300 dark:border-rose-800"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                      <span>Soft-deleted</span>
+                    </span>
+                  )}
                   <WhatsAppButton phone={patient.phone} name={`${patient.first_name} ${patient.last_name}`} />
                 </div>
                 <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-1">

@@ -30,6 +30,7 @@ export type Patient = components['schemas']['PatientRead'] & {
   chief_complaint?: string | null;
   referral_source?: string | null;
   status: PatientStatus;
+  deleted_at?: string | null;
 };
 
 export type Lead = components['schemas']['LeadResponse'];

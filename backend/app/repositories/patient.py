@@ -35,7 +35,8 @@ class PatientRepository(BaseRepository[Patient]):
 
         effective_limit = min(limit, 500)
         statement = select(Patient).where(Patient.full_name.ilike(f"%{name.strip()}%"))
-        statement = self._apply_clinic_scope(statement, clinic_id).offset(offset).limit(effective_limit)
+        statement = self._apply_clinic_scope(statement, clinic_id)
+        statement = self._apply_soft_delete_filter(statement).offset(offset).limit(effective_limit)
         result = await self.session.scalars(statement)
         return list(result.all())
 
@@ -51,7 +52,8 @@ class PatientRepository(BaseRepository[Patient]):
 
         effective_limit = min(limit, 500)
         statement = select(Patient).where(Patient.phone.ilike(f"%{phone.strip()}%"))
-        statement = self._apply_clinic_scope(statement, clinic_id).offset(offset).limit(effective_limit)
+        statement = self._apply_clinic_scope(statement, clinic_id)
+        statement = self._apply_soft_delete_filter(statement).offset(offset).limit(effective_limit)
         result = await self.session.scalars(statement)
         return list(result.all())
 
@@ -70,7 +72,8 @@ class PatientRepository(BaseRepository[Patient]):
 
         effective_limit = min(limit, 500)
         statement = select(Patient).where(getattr(Patient, "email").ilike(f"%{email.strip()}%"))
-        statement = self._apply_clinic_scope(statement, clinic_id).offset(offset).limit(effective_limit)
+        statement = self._apply_clinic_scope(statement, clinic_id)
+        statement = self._apply_soft_delete_filter(statement).offset(offset).limit(effective_limit)
         result = await self.session.scalars(statement)
         return list(result.all())
 
@@ -85,7 +88,8 @@ class PatientRepository(BaseRepository[Patient]):
 
         effective_limit = min(limit, 500)
         statement = select(Patient).where(Patient.status == PatientStatus.ACTIVE)
-        statement = self._apply_clinic_scope(statement, clinic_id).offset(offset).limit(effective_limit)
+        statement = self._apply_clinic_scope(statement, clinic_id)
+        statement = self._apply_soft_delete_filter(statement).offset(offset).limit(effective_limit)
         result = await self.session.scalars(statement)
         return list(result.all())
 

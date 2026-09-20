@@ -12,10 +12,12 @@ import { AccessRestricted } from '../../../components/ui/AccessRestricted';
 
 interface DeletedItem {
   id: string;
-  resource: 'patients' | 'leads' | 'appointments' | 'invoices' | 'patient_documents';
-  name: string;
+  resource?: string;
+  resource_type?: string;
+  name?: string;
+  title?: string;
   deleted_at: string;
-  deleted_by: string;
+  deleted_by?: string;
 }
 
 export default function RecycleBinPage() {
@@ -59,10 +61,30 @@ export default function RecycleBinPage() {
   }
 
   const columns: Column<DeletedItem>[] = [
-    { key: 'name', header: 'Resource Item', render: (item) => <span className="font-bold">{item.name}</span> },
-    { key: 'resource', header: 'Resource Type', render: (item) => <span className="uppercase text-xs font-semibold text-teal-600">{item.resource}</span> },
-    { key: 'deleted_at', header: 'Deleted Date', render: (item) => new Date(item.deleted_at).toLocaleString() },
-    { key: 'deleted_by', header: 'Deleted By' },
+    {
+      key: 'name',
+      header: 'Resource Item',
+      render: (item) => <span className="font-bold">{item.title || item.name}</span>,
+    },
+    {
+      key: 'resource',
+      header: 'Resource Type',
+      render: (item) => (
+        <span className="uppercase text-xs font-semibold text-teal-600">
+          {item.resource_type || item.resource}
+        </span>
+      ),
+    },
+    {
+      key: 'deleted_at',
+      header: 'Deleted Date',
+      render: (item) => new Date(item.deleted_at).toLocaleString(),
+    },
+    {
+      key: 'deleted_by',
+      header: 'Deleted By',
+      render: (item) => <span className="text-xs text-slate-500">{item.deleted_by || '—'}</span>,
+    },
     ...(canRestore
       ? [
           {
@@ -70,7 +92,7 @@ export default function RecycleBinPage() {
             header: 'Actions',
             render: (item: DeletedItem) => (
               <button
-                onClick={() => handleRestore(item.resource, item.id)}
+                onClick={() => handleRestore(item.resource_type || item.resource || 'patient', item.id)}
                 className="px-2.5 py-1 bg-teal-50 hover:bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300 rounded text-xs font-semibold flex items-center gap-1 cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -94,7 +116,7 @@ export default function RecycleBinPage() {
           columns={columns}
           data={items}
           isLoading={isLoading}
-          searchField={(i) => `${i.name} ${i.resource}`}
+          searchField={(i) => `${i.title || i.name || ''} ${i.resource_type || i.resource || ''}`}
           searchPlaceholder="Search soft-deleted records..."
           emptyMessage="Recycle bin is empty."
         />

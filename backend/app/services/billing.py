@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from uuid import UUID
+import uuid
 
 from app.enums.billing import InvoiceStatus
 from app.enums.package import PackageStatus
@@ -277,6 +278,10 @@ class BillingService:
             raise BillingValidationError("Total invoice amount cannot be negative.")
 
         invoice_data = payload.model_dump(exclude={"items", "line_items"})
+        if not invoice_data.get("invoice_number"):
+            invoice_data["invoice_number"] = f"INV-{datetime.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
+        if not invoice_data.get("issue_date"):
+            invoice_data["issue_date"] = datetime.now(timezone.utc)
         invoice_data.update(
             {
                 "clinic_id": clinic_id,

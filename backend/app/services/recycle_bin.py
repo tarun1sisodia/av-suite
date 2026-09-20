@@ -85,7 +85,7 @@ class RecycleBinService:
                             resource_type="patient",
                             title=p.full_name,
                             deleted_at=p.deleted_at,
-                            deleted_by=p.deleted_by,
+                            deleted_by=getattr(p, "deleted_by", None),
                         )
                     )
 
@@ -99,7 +99,7 @@ class RecycleBinService:
                             resource_type="lead",
                             title=l_item.name,
                             deleted_at=l_item.deleted_at,
-                            deleted_by=l_item.deleted_by,
+                            deleted_by=getattr(l_item, "deleted_by", None),
                         )
                     )
 
@@ -113,7 +113,7 @@ class RecycleBinService:
                             resource_type="appointment",
                             title=f"Appointment {appt.id}",
                             deleted_at=appt.deleted_at,
-                            deleted_by=appt.deleted_by,
+                            deleted_by=getattr(appt, "deleted_by", None),
                         )
                     )
 
@@ -127,7 +127,7 @@ class RecycleBinService:
                             resource_type="invoice",
                             title=inv.invoice_number,
                             deleted_at=inv.deleted_at,
-                            deleted_by=inv.deleted_by,
+                            deleted_by=getattr(inv, "deleted_by", None),
                         )
                     )
 
@@ -141,7 +141,7 @@ class RecycleBinService:
                             resource_type="document",
                             title=doc.label,
                             deleted_at=doc.deleted_at,
-                            deleted_by=doc.deleted_by,
+                            deleted_by=getattr(doc, "deleted_by", None),
                         )
                     )
 

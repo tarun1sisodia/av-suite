@@ -34,6 +34,7 @@ export function AddAppointmentSlideOver({ isOpen, onClose }: AddAppointmentSlide
     register,
     handleSubmit,
     watch,
+    setValue,
     reset,
     formState: { errors },
   } = useForm<AppointmentFormValues>({
@@ -48,6 +49,18 @@ export function AddAppointmentSlideOver({ isOpen, onClose }: AddAppointmentSlide
       source: 'manual',
     },
   });
+
+  React.useEffect(() => {
+    if (patients.length > 0 && !watch('patient_id')) {
+      setValue('patient_id', patients[0].id);
+    }
+  }, [patients, setValue, watch]);
+
+  React.useEffect(() => {
+    if (therapists.length > 0 && !watch('therapist_id')) {
+      setValue('therapist_id', therapists[0].id);
+    }
+  }, [therapists, setValue, watch]);
 
   const selectedTherapist = watch('therapist_id');
   const selectedTime = watch('scheduled_at');
@@ -97,9 +110,10 @@ export function AddAppointmentSlideOver({ isOpen, onClose }: AddAppointmentSlide
             {...register('patient_id')}
             className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm"
           >
+            <option value="">Select a patient</option>
             {patients.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.first_name} {p.last_name} ({p.phone})
+                {p.first_name} {p.last_name} ({p.phone}) {p.deleted_at ? '[Soft-deleted]' : ''}
               </option>
             ))}
           </select>
@@ -114,12 +128,14 @@ export function AddAppointmentSlideOver({ isOpen, onClose }: AddAppointmentSlide
             {...register('therapist_id')}
             className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm"
           >
+            <option value="">Select a therapist / provider</option>
             {therapists.map((u) => (
               <option key={u.id} value={u.id}>
                 {u.first_name} {u.last_name} ({u.role})
               </option>
             ))}
           </select>
+          {errors.therapist_id && <p className="text-xs text-rose-500 mt-1">{errors.therapist_id.message}</p>}
         </div>
 
         <div className="grid grid-cols-2 gap-4">

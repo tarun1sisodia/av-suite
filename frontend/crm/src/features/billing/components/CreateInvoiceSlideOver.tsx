@@ -48,6 +48,12 @@ export function CreateInvoiceSlideOver({ isOpen, onClose }: CreateInvoiceSlideOv
     name: 'items',
   });
 
+  React.useEffect(() => {
+    if (patients.length > 0 && !watch('patient_id')) {
+      setValue('patient_id', patients[0].id);
+    }
+  }, [patients, setValue, watch]);
+
   const items = watch('items') || [];
   const discountAmount = watch('discount_amount') || 0;
   const taxAmount = watch('tax_amount') || 0;
@@ -88,12 +94,14 @@ export function CreateInvoiceSlideOver({ isOpen, onClose }: CreateInvoiceSlideOv
             {...register('patient_id')}
             className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm"
           >
+            <option value="">Select a patient</option>
             {patients.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.first_name} {p.last_name} ({p.phone})
+                {p.first_name} {p.last_name} ({p.phone}) {p.deleted_at ? '[Soft-deleted]' : ''}
               </option>
             ))}
           </select>
+          {errors.patient_id && <p className="text-xs text-rose-500 mt-1">{errors.patient_id.message}</p>}
         </div>
 
         <div className="grid grid-cols-2 gap-4">

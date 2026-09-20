@@ -8,7 +8,7 @@ import { usePatients } from '../../../features/patients/api';
 import { AddPatientSlideOver } from '../../../features/patients/components/AddPatientSlideOver';
 import { WhatsAppButton } from '../../../components/ui/WhatsAppButton';
 import { Patient, PatientStatus } from '../../../types/api';
-import { Plus, Phone } from 'lucide-react';
+import { Plus, Phone, Trash2 } from 'lucide-react';
 import { useAuthStore } from '../../../store';
 import { canAccessModule, canPerformAction } from '../../../config/permissions';
 import { AccessRestricted } from '../../../components/ui/AccessRestricted';
@@ -28,6 +28,8 @@ export default function PatientsPage() {
 
   const filteredPatients = patients.filter((p) => {
     if (statusFilter === 'all') return true;
+    if (statusFilter === 'soft_deleted') return !!p.deleted_at;
+    if (statusFilter === 'active') return !p.deleted_at && p.status === 'active';
     return p.status === statusFilter;
   });
 
@@ -46,9 +48,20 @@ export default function PatientsPage() {
             {patient.last_name[0]}
           </div>
           <div>
-            <p className="font-semibold text-slate-900 dark:text-white">
-              {patient.first_name} {patient.last_name}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="font-semibold text-slate-900 dark:text-white">
+                {patient.first_name} {patient.last_name}
+              </p>
+              {patient.deleted_at && (
+                <span
+                  title={`Soft-deleted on ${new Date(patient.deleted_at).toLocaleString()}`}
+                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-rose-50 text-rose-700 dark:bg-rose-950/70 dark:text-rose-300 border border-rose-200 dark:border-rose-800"
+                >
+                  <Trash2 className="w-3 h-3 text-rose-500" />
+                  <span>Soft-deleted</span>
+                </span>
+              )}
+            </div>
             <p className="text-xs text-slate-400">ID: {patient.id}</p>
           </div>
         </div>
@@ -117,6 +130,7 @@ export default function PatientsPage() {
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
               <option value="discharged">Discharged</option>
+              <option value="soft_deleted">Soft-deleted</option>
             </select>
 
             {canPerformAction('createEditPatient') && (
