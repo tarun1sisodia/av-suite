@@ -10,12 +10,13 @@ interface SlideOverProps {
   title: string;
   subtitle?: string;
   children: React.ReactNode;
+  isProcessing?: boolean;
 }
 
-export function SlideOver({ isOpen, onClose, title, subtitle, children }: SlideOverProps) {
+export function SlideOver({ isOpen, onClose, title, subtitle, children, isProcessing = false }: SlideOverProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape' && !isProcessing) onClose();
     };
     if (isOpen) {
       window.addEventListener('keydown', handleKeyDown);
@@ -25,7 +26,7 @@ export function SlideOver({ isOpen, onClose, title, subtitle, children }: SlideO
       window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'auto';
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isProcessing]);
 
   return (
     <AnimatePresence>
@@ -38,7 +39,7 @@ export function SlideOver({ isOpen, onClose, title, subtitle, children }: SlideO
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-            onClick={onClose}
+            onClick={isProcessing ? undefined : onClose}
           />
 
           {/* Panel */}
@@ -58,8 +59,9 @@ export function SlideOver({ isOpen, onClose, title, subtitle, children }: SlideO
                 {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
               </div>
               <button
-                onClick={onClose}
-                className="btn-press p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                onClick={isProcessing ? undefined : onClose}
+                disabled={isProcessing}
+                className="btn-press p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <X className="w-5 h-5" />
               </button>

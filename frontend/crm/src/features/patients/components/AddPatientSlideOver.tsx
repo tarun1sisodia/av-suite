@@ -54,7 +54,7 @@ export function AddPatientSlideOver({ isOpen, onClose }: AddPatientSlideOverProp
   };
 
   return (
-    <SlideOver isOpen={isOpen} onClose={onClose} title="Add New Patient" subtitle="Create a new patient record">
+    <SlideOver isOpen={isOpen} onClose={onClose} title="Add New Patient" subtitle="Create a new patient record" isProcessing={createPatient.isPending}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Section 1: Demographics */}
         <div className="space-y-4">

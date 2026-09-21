@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { SoapAssessment } from '../../../types/api';
 import { useAssessments, useCreateAssessment, useUpdateAssessment } from '../../assessments/api';
 import { useAuthStore } from '../../../store';
-import { hasCapability } from '../../../config/permissions';
+import { useHasCapability } from '../../../config/permissions';
 import { CheckCircle2, Lock, Unlock, Save, FileCheck, Stethoscope, Heart, Zap, Baby, Activity, Loader2 } from 'lucide-react';
 
 interface SpecialtyOption {
@@ -33,6 +33,9 @@ export function SoapNotesTab({
   const role = useAuthStore((s) => s.role);
   const [selectedSpecialty, setSelectedSpecialty] = useState('physiotherapy');
   const [painVas, setPainVas] = useState<number>(6);
+
+  const canCreate = useHasCapability('assessments.create');
+  const canEdit = useHasCapability('assessments.edit');
 
   const { data: assessmentsResponse, isLoading } = useAssessments(patientId);
   const assessmentsData = React.useMemo(() => assessmentsResponse?.data || [], [assessmentsResponse?.data]);
@@ -115,7 +118,7 @@ export function SoapNotesTab({
   };
 
   const handleReopen = async () => {
-    if (!hasCapability('assessments.edit')) {
+    if (!canEdit) {
       toast.error('You do not have permission to re-open finalized clinical notes');
       return;
     }
@@ -175,7 +178,7 @@ export function SoapNotesTab({
 
         <div className="flex items-center gap-3">
           {isFinalized ? (
-            hasCapability('assessments.edit') && (
+            canEdit && (
               <button
                 onClick={handleReopen}
                 disabled={updateAssessment.isPending}
@@ -186,7 +189,7 @@ export function SoapNotesTab({
               </button>
             )
           ) : (
-            (hasCapability('assessments.create') || hasCapability('assessments.edit')) && (
+            (canCreate || canEdit) && (
               <button
                 onClick={handleFinalize}
                 disabled={createAssessment.isPending || updateAssessment.isPending}

@@ -8,15 +8,18 @@ import { treatmentSessionFormSchema, TreatmentSessionFormValues } from '../../..
 import { SlideOver } from '../../../components/ui/SlideOver';
 import { Plus, Calendar, Activity, FileText, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../../../store';
-import { hasCapability } from '../../../config/permissions';
+import { useHasCapability } from '../../../config/permissions';
 
 import { useTreatments, useCreateTreatmentSession } from '../../treatments/api';
 
 export function TreatmentsTab({ patientId }: { patientId: string }) {
   const role = useAuthStore((s) => s.role);
+  const userId = useAuthStore((s) => s.userId);
   const { data: response, isLoading } = useTreatments(patientId);
   const sessions = response?.data || [];
   const [isSlideOpen, setIsSlideOpen] = useState(false);
+
+  const canCreate = useHasCapability('treatments.create');
 
   const {
     register,
@@ -27,7 +30,7 @@ export function TreatmentsTab({ patientId }: { patientId: string }) {
     resolver: zodResolver(treatmentSessionFormSchema),
     defaultValues: {
       patient_id: patientId,
-      therapist_id: useAuthStore.getState().userId ?? '',
+      therapist_id: userId ?? '',
       treatment_date: new Date().toISOString().slice(0, 16),
       pain_score: 5,
       treatment: '',
@@ -60,7 +63,7 @@ export function TreatmentsTab({ patientId }: { patientId: string }) {
           <h3 className="text-base font-bold text-slate-900 dark:text-white">Treatment Sessions</h3>
           <p className="text-xs text-slate-500">Physical therapy & rehabilitation logs</p>
         </div>
-        {hasCapability('treatments.create') && (
+        {canCreate && (
           <button
             onClick={() => setIsSlideOpen(true)}
             className="px-3.5 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium text-xs rounded-lg flex items-center gap-1.5 cursor-pointer"
@@ -121,6 +124,7 @@ export function TreatmentsTab({ patientId }: { patientId: string }) {
         onClose={() => setIsSlideOpen(false)}
         title="Record Treatment Session"
         subtitle="Log physical therapy details & exercises"
+        isProcessing={createSession.isPending}
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
@@ -178,7 +182,8 @@ export function TreatmentsTab({ patientId }: { patientId: string }) {
             <button
               type="button"
               onClick={() => setIsSlideOpen(false)}
-              className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
+              disabled={createSession.isPending}
+              className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg disabled:opacity-40"
             >
               Cancel
             </button>

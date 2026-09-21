@@ -72,7 +72,7 @@ export function RescheduleSlideOver({ isOpen, onClose, appointment }: Reschedule
   if (!appointment) return null;
 
   return (
-    <SlideOver isOpen={isOpen} onClose={onClose} title="Reschedule Appointment" subtitle={`Reschedule for ${appointment.patient_name || 'Patient ' + appointment.patient_id}`}>
+    <SlideOver isOpen={isOpen} onClose={onClose} title="Reschedule Appointment" subtitle={`Reschedule for ${appointment.patient_name || 'Patient ' + appointment.patient_id}`} isProcessing={updateAppointment.isPending}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="space-y-4">
           <div>

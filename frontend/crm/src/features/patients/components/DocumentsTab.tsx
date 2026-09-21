@@ -9,7 +9,7 @@ import { SlideOver } from '../../../components/ui/SlideOver';
 import { FileUp, FileText, Download, Trash2, Plus, Paperclip, Loader2 } from 'lucide-react';
 import { API_BASE_URL } from '../../../lib/api-client';
 import { getStoredToken } from '../../../lib/auth';
-import { hasCapability } from '../../../config/permissions';
+import { useHasCapability } from '../../../config/permissions';
 
 import { usePatientDocuments, useUploadPatientDocument } from '../api';
 
@@ -18,6 +18,9 @@ export function DocumentsTab({ patientId }: { patientId: string }) {
   const documents = response?.items || [];
   const [isSlideOpen, setIsSlideOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const canUpload = useHasCapability('documents.upload');
+  const canView = useHasCapability('documents.view');
 
   const {
     register,
@@ -96,7 +99,7 @@ export function DocumentsTab({ patientId }: { patientId: string }) {
           <h3 className="text-base font-bold text-slate-900 dark:text-white">Patient Documents</h3>
           <p className="text-xs text-slate-500">Medical reports, prescriptions & consent forms</p>
         </div>
-        {hasCapability('documents.upload') && (
+        {canUpload && (
           <button
             onClick={() => setIsSlideOpen(true)}
             className="px-3.5 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium text-xs rounded-lg flex items-center gap-1.5 cursor-pointer"
@@ -130,7 +133,7 @@ export function DocumentsTab({ patientId }: { patientId: string }) {
                     </p>
                     <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
                       <span className="capitalize px-2 py-0.2 rounded bg-slate-100 dark:bg-slate-800 font-medium">
-                        {doc.category.replace('_', ' ')}
+                        {doc.category.replaceAll('_', ' ')}
                       </span>
                       <span>•</span>
                       <span>{formatFileSize(doc.file_size)}</span>
@@ -140,7 +143,7 @@ export function DocumentsTab({ patientId }: { patientId: string }) {
                   </div>
                 </div>
 
-                {hasCapability('documents.view') && (
+                {canView && (
                 <button
                   onClick={async () => {
                     try {
@@ -183,6 +186,7 @@ export function DocumentsTab({ patientId }: { patientId: string }) {
         onClose={() => setIsSlideOpen(false)}
         title="Upload Patient Document"
         subtitle="Attach MRI scans, prescriptions or lab reports"
+        isProcessing={uploadDocument.isPending}
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
@@ -242,7 +246,8 @@ export function DocumentsTab({ patientId }: { patientId: string }) {
             <button
               type="button"
               onClick={() => setIsSlideOpen(false)}
-              className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
+              disabled={uploadDocument.isPending}
+              className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg disabled:opacity-40"
             >
               Cancel
             </button>

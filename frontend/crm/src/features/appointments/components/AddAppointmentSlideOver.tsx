@@ -93,7 +93,7 @@ export function AddAppointmentSlideOver({ isOpen, onClose }: AddAppointmentSlide
   };
 
   return (
-    <SlideOver isOpen={isOpen} onClose={onClose} title="Book Appointment" subtitle="Schedule patient visit & provider slot">
+    <SlideOver isOpen={isOpen} onClose={onClose} title="Book Appointment" subtitle="Schedule patient visit & provider slot" isProcessing={createAppointment.isPending}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Double booking inline warning */}
         {isOverlapDetected && (

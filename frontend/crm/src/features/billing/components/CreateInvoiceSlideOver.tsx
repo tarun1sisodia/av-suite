@@ -85,7 +85,7 @@ export function CreateInvoiceSlideOver({ isOpen, onClose }: CreateInvoiceSlideOv
   };
 
   return (
-    <SlideOver isOpen={isOpen} onClose={onClose} title="Create Invoice" subtitle="Generate invoice for patient services">
+    <SlideOver isOpen={isOpen} onClose={onClose} title="Create Invoice" subtitle="Generate invoice for patient services" isProcessing={createInvoice.isPending}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div>
           <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">

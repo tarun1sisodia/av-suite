@@ -49,7 +49,7 @@ export function AddUserSlideOver({ isOpen, onClose, defaultRole = 'front_desk' }
   };
 
   return (
-    <SlideOver isOpen={isOpen} onClose={onClose} title="Add New User" subtitle="Create a new user account for your clinic">
+    <SlideOver isOpen={isOpen} onClose={onClose} title="Add New User" subtitle="Create a new user account for your clinic" isProcessing={createUser.isPending}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>

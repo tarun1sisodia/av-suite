@@ -67,7 +67,7 @@ export function RecordPaymentSlideOver({ isOpen, onClose }: RecordPaymentSlideOv
   };
 
   return (
-    <SlideOver isOpen={isOpen} onClose={onClose} title="Record Payment" subtitle="Log payment received for an invoice">
+    <SlideOver isOpen={isOpen} onClose={onClose} title="Record Payment" subtitle="Log payment received for an invoice" isProcessing={recordPayment.isPending}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
