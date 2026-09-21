@@ -42,3 +42,12 @@ class RecycleBinRestoreResponse(BaseModel):
     resource_type: str
     id: UUID
     restored: bool
+
+
+class RecycleBinDeleteResponse(BaseModel):
+    """Response schema returned after permanently deleting a soft-deleted resource."""
+
+    message: str
+    resource_type: str
+    id: UUID
+    deleted: bool

@@ -9,6 +9,7 @@ from app.repositories.document import PatientDocumentRepository
 from app.repositories.lead import LeadRepository
 from app.repositories.patient import PatientRepository
 from app.schemas.recycle_bin import (
+    RecycleBinDeleteResponse,
     RecycleBinItemResponse,
     RecycleBinRestoreResponse,
 )
@@ -176,4 +177,37 @@ class RecycleBinService:
             resource_type=norm_type,
             id=id,
             restored=True,
+        )
+
+    async def permanent_delete_resource(
+        self, clinic_id: UUID, resource_type: str, id: UUID
+    ) -> RecycleBinDeleteResponse:
+        """Permanently delete a soft-deleted entity for the clinic (irreversible)."""
+
+        norm_type = self._normalize_resource_type(resource_type)
+        repo_map: dict[str, Any] = {
+            "patient": self.patient_repository,
+            "lead": self.lead_repository,
+            "appointment": self.appointment_repository,
+            "invoice": self.invoice_repository,
+            "document": self.document_repository,
+        }
+        repo = repo_map[norm_type]
+
+        entity = await repo.get_by_id(id, clinic_id=clinic_id, include_deleted=True)
+        if entity is None:
+            raise RecycleBinNotFoundError(f"{norm_type.capitalize()} '{id}' not found for clinic '{clinic_id}'.")
+
+        if not getattr(entity, "deleted_at", None):
+            raise RecycleBinError(
+                f"{norm_type.capitalize()} '{id}' is not in the recycle bin. "
+                "Only soft-deleted items can be permanently deleted from here."
+            )
+
+        await repo.hard_delete(entity)
+        return RecycleBinDeleteResponse(
+            message=f"{norm_type.capitalize()} permanently deleted.",
+            resource_type=norm_type,
+            id=id,
+            deleted=True,
         )

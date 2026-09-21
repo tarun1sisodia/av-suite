@@ -78,6 +78,52 @@ export default function PatientWorkspacePage() {
     );
   }
 
+  if (patient.deleted_at) {
+    return (
+      <AppShell>
+        <div className="space-y-6">
+          {/* Back Link */}
+          <button
+            onClick={() => router.push('/patients')}
+            className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-teal-600 font-medium transition-colors cursor-pointer"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Patients Directory</span>
+          </button>
+
+          {/* Soft-deleted Alert Banner */}
+          <div className="p-6 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+            <div className="flex items-start sm:items-center gap-3 text-rose-800 dark:text-rose-200 text-sm">
+              <Trash2 className="w-6 h-6 text-rose-600 shrink-0 mt-0.5 sm:mt-0" />
+              <div>
+                <p className="font-bold text-base">This patient is soft-deleted</p>
+                <p className="text-xs text-rose-600 dark:text-rose-400 mt-0.5">
+                  Patient <span className="font-semibold">{patient.first_name} {patient.last_name}</span> was deleted on {new Date(patient.deleted_at).toLocaleString()} and is currently in the Recycle Bin.
+                </p>
+              </div>
+            </div>
+            {canRestore && (
+              <button
+                onClick={async () => {
+                  try {
+                    await apiClient.post(`/recycle-bin/patient/${patient.id}/restore`);
+                    toast.success('Patient restored successfully');
+                    window.location.reload();
+                  } catch {
+                    toast.error('Failed to restore patient');
+                  }
+                }}
+                className="px-4 py-2 bg-white dark:bg-slate-900 hover:bg-rose-100 dark:hover:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-700 rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-xs whitespace-nowrap"
+              >
+                Restore Patient
+              </button>
+            )}
+          </div>
+        </div>
+      </AppShell>
+    );
+  }
+
   const handleDelete = async () => {
     if (window.confirm(`Are you sure you want to delete ${patient.first_name} ${patient.last_name}?`)) {
       try {
@@ -159,42 +205,11 @@ export default function PatientWorkspacePage() {
         {/* Back Link */}
         <button
           onClick={() => router.push('/patients')}
-          className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-teal-600 font-medium transition-colors"
+          className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-teal-600 font-medium transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Patients Directory</span>
         </button>
-
-        {/* Soft-deleted Alert Banner */}
-        {patient.deleted_at && (
-          <div className="p-4 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 rounded-xl flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 text-rose-800 dark:text-rose-200 text-sm">
-              <Trash2 className="w-5 h-5 text-rose-600 shrink-0" />
-              <div>
-                <p className="font-bold">This patient is soft-deleted</p>
-                <p className="text-xs text-rose-600 dark:text-rose-400">
-                  This record was deleted on {new Date(patient.deleted_at).toLocaleString()} and is currently in the Recycle Bin.
-                </p>
-              </div>
-            </div>
-            {canRestore && (
-              <button
-                onClick={async () => {
-                  try {
-                    await apiClient.post(`/recycle-bin/patient/${patient.id}/restore`);
-                    toast.success('Patient restored successfully');
-                    window.location.reload();
-                  } catch {
-                    toast.error('Failed to restore patient');
-                  }
-                }}
-                className="px-3 py-1.5 bg-white dark:bg-slate-900 hover:bg-rose-100 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-700 rounded-lg text-xs font-bold transition-colors cursor-pointer"
-              >
-                Restore Patient
-              </button>
-            )}
-          </div>
-        )}
 
         {/* Sticky Patient Workspace Header */}
         <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs space-y-4 sticky top-16 z-10">

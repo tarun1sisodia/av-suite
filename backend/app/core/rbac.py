@@ -129,6 +129,7 @@ CAPABILITY_REGISTRY: Mapping[str, CapabilityDefinition] = MappingProxyType(
         # --- recycle bin --------------------------------------------------
         "recyclebin.view": CapabilityDefinition("recyclebin.view", _NA),
         "recyclebin.restore": CapabilityDefinition("recyclebin.restore", _NA),
+        "recyclebin.delete": CapabilityDefinition("recyclebin.delete", _NA),
         # --- posture ------------------------------------------------------
         "posture.view": CapabilityDefinition("posture.view", _NOA),
         "posture.create": CapabilityDefinition("posture.create", _NA),

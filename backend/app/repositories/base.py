@@ -188,6 +188,12 @@ class BaseRepository(Generic[ModelT]):
 
         return db_obj
 
+    async def hard_delete(self, db_obj: ModelT) -> None:
+        """Permanently remove an ORM instance from the database (no recovery possible)."""
+
+        await self.session.delete(db_obj)
+        await self.session.flush()
+
     async def exists(self, id: UUID, *, clinic_id: UUID | None = None, include_deleted: bool = False) -> bool:
         """Check whether a row exists for the given primary key and optional clinic scope."""
 

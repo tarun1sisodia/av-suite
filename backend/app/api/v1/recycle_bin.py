@@ -16,6 +16,7 @@ from app.repositories.document import PatientDocumentRepository
 from app.repositories.lead import LeadRepository
 from app.repositories.patient import PatientRepository
 from app.schemas.recycle_bin import (
+    RecycleBinDeleteResponse,
     RecycleBinListResponse,
     RecycleBinRestoreResponse,
 )
@@ -78,6 +79,34 @@ async def restore_recycle_bin_item(
 
     try:
         return await service.restore_resource(clinic.id, resource, id)
+    except RecycleBinNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
+        ) from exc
+    except RecycleBinError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)
+        ) from exc
+
+
+@router.delete(
+    "/recycle-bin/{resource}/{id}", response_model=RecycleBinDeleteResponse
+)
+async def permanent_delete_recycle_bin_item(
+    resource: str,
+    id: UUID,
+    clinic: CurrentClinicDep,
+    service: RecycleBinServiceDep,
+    _: None = Depends(require_capability("recyclebin.delete")),
+) -> RecycleBinDeleteResponse:
+    """Permanently delete a soft-deleted resource belonging to the authenticated clinic.
+
+    This action is irreversible — the record will be removed from the database.
+    Only items that are already in the recycle bin (soft-deleted) can be targeted.
+    """
+
+    try:
+        return await service.permanent_delete_resource(clinic.id, resource, id)
     except RecycleBinNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)

@@ -89,6 +89,7 @@ export type CanonicalCapabilityKey =
   // recycle bin
   | 'recyclebin.view'
   | 'recyclebin.restore'
+  | 'recyclebin.delete'
   // posture
   | 'posture.view'
   | 'posture.create';
@@ -181,6 +182,7 @@ export const CANONICAL_CAPABILITIES: CapabilityMeta[] = [
   // Recycle Bin
   { key: 'recyclebin.view', module: 'Recycle Bin', label: 'View Recycle Bin', allowedScopes: ['none', 'all'] },
   { key: 'recyclebin.restore', module: 'Recycle Bin', label: 'Restore Deleted Items', allowedScopes: ['none', 'all'] },
+  { key: 'recyclebin.delete', module: 'Recycle Bin', label: 'Permanently Delete Items', allowedScopes: ['none', 'all'] },
   // Posture
   { key: 'posture.view', module: 'Posture', label: 'View Posture Analyses', allowedScopes: ['none', 'own', 'all'] },
   { key: 'posture.create', module: 'Posture', label: 'Run Posture Analysis', allowedScopes: ['none', 'all'] },
