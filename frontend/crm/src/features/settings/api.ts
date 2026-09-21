@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../lib/api-client';
+import { useAuthStore } from '../../store';
 
 export interface ClinicSettings {
   id: string;
@@ -38,6 +39,7 @@ export const useUpdateClinicSettings = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clinic-settings'] });
+      useAuthStore.getState().fetchMe();
     },
   });
 };

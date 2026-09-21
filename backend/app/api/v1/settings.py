@@ -49,7 +49,6 @@ async def get_clinic_settings(
     clinic: CurrentClinicDep,
     user: CurrentUserDep,
     service: SettingsServiceDep,
-    scope: CapabilityScope = Depends(require_capability("settings.view")),
 ) -> ClinicSettingsResponse:
     """Retrieve clinic branding and configuration settings."""
 

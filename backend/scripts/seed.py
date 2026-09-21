@@ -18,7 +18,7 @@ import os
 # Make sure app imports work when running from backend/
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from datetime import date
+from datetime import date, datetime, timezone, timedelta
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
@@ -34,6 +34,7 @@ from app.models import (
     UserPermission,
     Patient,
 )
+from app.models.treatment import TreatmentSession
 from app.models.clinic import ClinicPlanTier
 from app.models.patient import PatientStatus
 from app.enums.shared import Gender
@@ -206,6 +207,7 @@ async def seed() -> None:
 
             # ---- Users (3 roles) ----------------------------------------
             admin_user = None
+            therapist_user = None
             created_users = []
 
             role_meta = {
@@ -239,6 +241,8 @@ async def seed() -> None:
 
                 if role == UserRole.ADMIN:
                     admin_user = user
+                elif role == UserRole.THERAPIST:
+                    therapist_user = user
 
                 created_users.append(user)
                 print(f"    👤 [{role.value:10s}]  {email}")
@@ -263,7 +267,41 @@ async def seed() -> None:
                     **p_cfg,
                 )
                 session.add(patient)
+                await session.flush()
                 print(f"    🧑‍⚕️ Patient: {p_cfg['first_name']} {p_cfg['last_name']}")
+
+                # ---- Treatment Sessions with Home Advice & Clinical Notes ----
+                treatments_seed = [
+                    (
+                        "Initial Assessment & Lumbar Spine Mobilization (Grade II-III)",
+                        "Perform gentle cat-camel stretches twice daily. Avoid prolonged slumped sitting; use a lumbar roll when driving.",
+                        "Patient demonstrated 35% restricted lumbar flexion with mild tenderness over L4-L5. Recommended 2 sessions per week.",
+                        6,
+                        datetime.now(timezone.utc) - timedelta(days=5),
+                    ),
+                    (
+                        "Core Stabilization & Deep Tissue Release",
+                        "Continue pelvic tilts (3 sets of 10 reps) and bird-dog exercises daily. Apply heat pack for 15 mins before bed.",
+                        "Significant improvement noted: pain score reduced from 6 to 3. Lumbar extension range improved by 15 degrees.",
+                        3,
+                        datetime.now(timezone.utc) - timedelta(days=1),
+                    ),
+                ]
+                for treat_name, advice, notes, pain, t_date in treatments_seed:
+                    t_session = TreatmentSession(
+                        clinic_id=clinic.id,
+                        patient_id=patient.id,
+                        appointment_id=None,
+                        therapist_id=therapist_user.id if therapist_user else admin_user.id,
+                        treatment_date=t_date,
+                        pain_score=pain,
+                        treatment=treat_name,
+                        home_advice=advice,
+                        notes=notes,
+                        finalized=True,
+                    )
+                    session.add(t_session)
+                print(f"       🩺 Seeded 2 treatment sessions with home advice & clinical notes")
 
         await session.commit()
 

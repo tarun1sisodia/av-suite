@@ -63,9 +63,10 @@ export default function AppointmentsPage() {
   }, [canViewBookingRequests]);
 
   // Clinic Settings for Booking Link
+  const authClinic = useAuthStore((s) => s.clinic);
   const { data: clinicSettings } = useClinicSettings();
   const generateSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-  const clinicName = clinicSettings?.name || 'aarogya';
+  const clinicName = clinicSettings?.name || authClinic?.name || 'aarogya';
   const slug = generateSlug(clinicName);
 
   const defaultBookingUrl = typeof window !== 'undefined' ? `${window.location.origin}/booking/${slug}` : `/booking/${slug}`;
@@ -74,12 +75,13 @@ export default function AppointmentsPage() {
   const [bookingUrl, setBookingUrl] = useState(defaultBookingUrl);
   
   React.useEffect(() => {
-    if (clinicSettings?.name && typeof window !== 'undefined') {
-       const newUrl = `${window.location.origin}/booking/${generateSlug(clinicSettings.name)}`;
+    const name = clinicSettings?.name || authClinic?.name;
+    if (name && typeof window !== 'undefined') {
+       const newUrl = `${window.location.origin}/booking/${generateSlug(name)}`;
        setBookingUrl(newUrl);
        localStorage.setItem('av_crm_booking_url', newUrl);
     }
-  }, [clinicSettings?.name]);
+  }, [clinicSettings?.name, authClinic?.name]);
   const [showQr, setShowQr] = useState(false);
 
   const filteredAppointments = appointments.filter((apt) => {

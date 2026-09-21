@@ -113,6 +113,15 @@ export function TreatmentsTab({ patientId }: { patientId: string }) {
                   <p className="text-xs text-slate-600 dark:text-slate-300">{session.home_advice}</p>
                 </div>
               )}
+
+              {session.notes && (
+                <div className="bg-amber-50/50 dark:bg-amber-950/30 p-3 rounded-lg border border-amber-200/50 dark:border-amber-800/50">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-0.5">
+                    Clinical Notes
+                  </p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300">{session.notes}</p>
+                </div>
+              )}
             </div>
           ))
         )}
@@ -157,7 +166,7 @@ export function TreatmentsTab({ patientId }: { patientId: string }) {
             </label>
             <textarea
               {...register('treatment')}
-              rows={4}
+              rows={3}
               placeholder="e.g. IFT applied for 15 mins, core strengthening..."
               className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm"
             />
@@ -173,7 +182,19 @@ export function TreatmentsTab({ patientId }: { patientId: string }) {
             <textarea
               {...register('home_advice')}
               rows={2}
-              placeholder="e.g. Cat-camel stretch 2x daily..."
+              placeholder="e.g. Cat-camel stretch 2x daily, ice pack for 10 mins..."
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              Clinical Notes
+            </label>
+            <textarea
+              {...register('notes')}
+              rows={2}
+              placeholder="e.g. Patient demonstrated 30% improvement in lumbar extension..."
               className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm"
             />
           </div>

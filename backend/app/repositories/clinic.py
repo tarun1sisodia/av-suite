@@ -30,3 +30,8 @@ class ClinicRepository(BaseRepository[Clinic]):
         statement = select(Clinic).where(Clinic.name.ilike(f"%{cleaned_identifier}%"))
         result = await self.session.scalars(statement)
         return result.first()
+
+    async def get_by_slug(self, slug: str) -> Clinic | None:
+        """Find a clinic by name/slug match."""
+        return await self.get_by_slug_or_id(slug)
+
