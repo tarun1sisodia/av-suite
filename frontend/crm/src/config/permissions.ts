@@ -107,9 +107,9 @@ export const CANONICAL_CAPABILITIES: CapabilityMeta[] = [
   { key: 'patients.edit', module: 'Patients', label: 'Edit Patients', allowedScopes: ['none', 'own', 'all'] },
   { key: 'patients.delete', module: 'Patients', label: 'Delete Patients', allowedScopes: ['none', 'all'] },
   // Leads
-  { key: 'leads.view', module: 'Leads', label: 'View Leads', allowedScopes: ['none', 'own', 'all'] },
+  { key: 'leads.view', module: 'Leads', label: 'View Leads', allowedScopes: ['none', 'all'] },
   { key: 'leads.create', module: 'Leads', label: 'Create Leads', allowedScopes: ['none', 'all'] },
-  { key: 'leads.edit', module: 'Leads', label: 'Edit Leads', allowedScopes: ['none', 'own', 'all'] },
+  { key: 'leads.edit', module: 'Leads', label: 'Edit Leads', allowedScopes: ['none', 'all'] },
   { key: 'leads.delete', module: 'Leads', label: 'Delete Leads', allowedScopes: ['none', 'all'] },
   { key: 'leads.convert', module: 'Leads', label: 'Convert Leads to Patients', allowedScopes: ['none', 'own', 'all'] },
   // Appointments
@@ -213,21 +213,25 @@ export const CANONICAL_ROLE_TEMPLATES: Record<UserRole, Partial<Record<Canonical
 export function getCapabilityScope(
   roleOrKey: UserRole | CanonicalCapabilityKey | null,
   keyOrOverrides?: CanonicalCapabilityKey | Record<string, string> | null,
-  userOverrides?: Record<string, string> | null
+  userOverrides?: Record<string, string> | null,
+  capabilitiesRecord?: Record<string, string> | null
 ): CapabilityScope {
   let key: CanonicalCapabilityKey;
   let role: UserRole | null = null;
   let overrides: Record<string, string> | null | undefined = userOverrides;
 
   if (typeof keyOrOverrides === 'string') {
-    // Called as (role, key, overrides)
+    // Called as (role, key, overrides, capabilitiesRecord)
     role = roleOrKey as UserRole | null;
     key = keyOrOverrides as CanonicalCapabilityKey;
   } else {
-    // Called as (key, overrides)
+    // Called as (key, overrides, role, capabilitiesRecord)
     key = roleOrKey as CanonicalCapabilityKey;
     overrides = keyOrOverrides as Record<string, string> | null | undefined;
-    role = useAuthStore.getState().role;
+    role = (arguments[2] as UserRole | null) ?? useAuthStore.getState().role;
+    if (arguments[3]) {
+      capabilitiesRecord = arguments[3] as Record<string, string>;
+    }
   }
 
   if (!key) return 'none';
@@ -237,8 +241,8 @@ export function getCapabilityScope(
     return overrides[key] as CapabilityScope;
   }
 
-  // 2. Active capabilities from useAuthStore (loaded via /auth/me)
-  const storeCaps = useAuthStore.getState().capabilities;
+  // 2. Active capabilities from argument or useAuthStore (loaded via /auth/me)
+  const storeCaps = capabilitiesRecord ?? useAuthStore.getState().capabilities;
   if (storeCaps && key in storeCaps) {
     return storeCaps[key] as CapabilityScope;
   }
@@ -246,16 +250,47 @@ export function getCapabilityScope(
   // 3. Fallback to role templates
   const effectiveRole = role || useAuthStore.getState().role;
   if (!effectiveRole) return 'none';
+  if (effectiveRole === 'admin') {
+    return CANONICAL_ROLE_TEMPLATES['admin']?.[key] || 'all';
+  }
   return CANONICAL_ROLE_TEMPLATES[effectiveRole]?.[key] || 'none';
 }
 
 export function hasCapability(
   roleOrKey: UserRole | CanonicalCapabilityKey | null,
   keyOrOverrides?: CanonicalCapabilityKey | Record<string, string> | null,
-  userOverrides?: Record<string, string> | null
+  userOverrides?: Record<string, string> | null,
+  capabilitiesRecord?: Record<string, string> | null
 ): boolean {
-  const scope = getCapabilityScope(roleOrKey, keyOrOverrides, userOverrides);
+  const scope = getCapabilityScope(roleOrKey, keyOrOverrides, userOverrides, capabilitiesRecord);
   return scope === 'own' || scope === 'all';
+}
+
+// ---------------------------------------------------------------------------
+// REACTIVE HOOKS (Ensures UI re-renders when /auth/me populates capabilities)
+// ---------------------------------------------------------------------------
+export function useHasCapability(key: CanonicalCapabilityKey): boolean {
+  const role = useAuthStore((s) => s.role);
+  const capabilities = useAuthStore((s) => s.capabilities);
+  return hasCapability(role, key, null, capabilities);
+}
+
+export function useCanAccessModule(module: keyof ModuleVisibility): boolean {
+  const role = useAuthStore((s) => s.role);
+  const capabilities = useAuthStore((s) => s.capabilities);
+  return canAccessModule(role, module, capabilities);
+}
+
+export function useCanPerformAction(action: keyof ActionPermissions): boolean {
+  const role = useAuthStore((s) => s.role);
+  const capabilities = useAuthStore((s) => s.capabilities);
+  return canPerformAction(role, action, capabilities);
+}
+
+export function usePermissions(): RolePermissions {
+  const role = useAuthStore((s) => s.role);
+  const capabilities = useAuthStore((s) => s.capabilities);
+  return getPermissionsForRole(role, capabilities);
 }
 
 // ---------------------------------------------------------------------------
@@ -332,37 +367,48 @@ export interface RolePermissions {
 
 export function canAccessModule(
   roleOrModule: UserRole | keyof ModuleVisibility | null,
-  module?: keyof ModuleVisibility
+  module?: keyof ModuleVisibility,
+  capabilitiesRecord?: Record<string, string> | null
 ): boolean {
-  const targetModule = (module || roleOrModule) as keyof ModuleVisibility;
+  let targetModule: keyof ModuleVisibility;
+  let role: UserRole | null = null;
+  if (module) {
+    role = roleOrModule as UserRole | null;
+    targetModule = module;
+  } else {
+    targetModule = roleOrModule as keyof ModuleVisibility;
+    role = useAuthStore.getState().role;
+  }
   if (!targetModule) return false;
+
+  const check = (key: CanonicalCapabilityKey) => hasCapability(role, key, null, capabilitiesRecord);
 
   switch (targetModule) {
     case 'dashboard':
       return true;
     case 'patients':
-      return hasCapability('patients.view');
+      return check('patients.view');
     case 'appointments':
-      return hasCapability('appointments.view');
+      return check('appointments.view');
     case 'analytics':
-      return hasCapability('analytics.my_performance') || hasCapability('analytics.clinic_financials');
+      return check('analytics.my_performance') || check('analytics.clinic_financials');
     case 'billing':
       return (
-        hasCapability('invoices.view') ||
-        hasCapability('payments.view') ||
-        hasCapability('packages.view')
+        check('invoices.view') ||
+        check('payments.view') ||
+        check('packages.view')
       );
     case 'leads':
-      return hasCapability('leads.view');
+      return check('leads.view');
     case 'therapists':
-      return hasCapability('users.view');
+      return check('users.view');
     case 'recycleBin':
-      return hasCapability('recyclebin.view');
+      return check('recyclebin.view');
     case 'settings':
       return (
-        hasCapability('settings.view') ||
-        hasCapability('users.view') ||
-        hasCapability('audit.view')
+        check('settings.view') ||
+        check('users.view') ||
+        check('audit.view')
       );
     default:
       return false;
@@ -371,77 +417,96 @@ export function canAccessModule(
 
 export function canPerformAction(
   roleOrAction: UserRole | keyof ActionPermissions | null,
-  action?: keyof ActionPermissions
+  action?: keyof ActionPermissions,
+  capabilitiesRecord?: Record<string, string> | null
 ): boolean {
-  const targetAction = (action || roleOrAction) as keyof ActionPermissions;
+  let targetAction: keyof ActionPermissions;
+  let role: UserRole | null = null;
+  if (action) {
+    role = roleOrAction as UserRole | null;
+    targetAction = action;
+  } else {
+    targetAction = roleOrAction as keyof ActionPermissions;
+    role = useAuthStore.getState().role;
+  }
   if (!targetAction) return false;
+
+  const check = (key: CanonicalCapabilityKey) => hasCapability(role, key, null, capabilitiesRecord);
 
   switch (targetAction) {
     case 'createEditPatient':
-      return hasCapability('patients.create') || hasCapability('patients.edit');
+      return check('patients.create') || check('patients.edit');
     case 'deletePatient':
-      return hasCapability('patients.delete');
+      return check('patients.delete');
     case 'manageAppointments':
-      return hasCapability('appointments.create') || hasCapability('appointments.edit');
+      return check('appointments.create') || check('appointments.edit');
     case 'createEditSoapNote':
       return (
-        hasCapability('treatments.create') ||
-        hasCapability('assessments.create') ||
-        hasCapability('assessments.edit')
+        check('treatments.create') ||
+        check('assessments.create') ||
+        check('assessments.edit')
       );
     case 'createInvoiceRecordPayment':
-      return hasCapability('invoices.create') || hasCapability('payments.record');
+      return check('invoices.create') || check('payments.record');
     case 'createSellPackage':
-      return hasCapability('packages.create') || hasCapability('packages.assign');
+      return check('packages.create') || check('packages.assign');
     case 'uploadDownloadDocuments':
-      return hasCapability('documents.upload') || hasCapability('documents.view');
+      return check('documents.upload') || check('documents.view');
     case 'restoreDeletedRecords':
-      return hasCapability('recyclebin.restore');
+      return check('recyclebin.restore');
     case 'manageUsersAndRoles':
       return (
-        hasCapability('users.create') ||
-        hasCapability('users.edit') ||
-        hasCapability('permissions.edit')
+        check('users.create') ||
+        check('users.edit') ||
+        check('permissions.edit')
       );
     case 'updateClinicSettings':
-      return hasCapability('settings.edit');
+      return check('settings.edit');
     default:
       return false;
   }
 }
 
-export function getPermissionsForRole(role?: UserRole | null): RolePermissions {
+export function getPermissionsForRole(
+  role?: UserRole | null,
+  capabilitiesRecord?: Record<string, string> | null
+): RolePermissions {
+  const effectiveRole = role ?? useAuthStore.getState().role;
+  const check = (key: CanonicalCapabilityKey) => hasCapability(effectiveRole, key, null, capabilitiesRecord);
+  const checkModule = (mod: keyof ModuleVisibility) => canAccessModule(effectiveRole, mod, capabilitiesRecord);
+  const checkAction = (act: keyof ActionPermissions) => canPerformAction(effectiveRole, act, capabilitiesRecord);
+
   return {
     sidebar: {
-      dashboard: canAccessModule('dashboard'),
-      patients: canAccessModule('patients'),
-      appointments: canAccessModule('appointments'),
-      analytics: canAccessModule('analytics'),
-      billing: canAccessModule('billing'),
-      leads: canAccessModule('leads'),
-      therapists: canAccessModule('therapists'),
-      recycleBin: canAccessModule('recycleBin'),
-      settings: canAccessModule('settings'),
+      dashboard: checkModule('dashboard'),
+      patients: checkModule('patients'),
+      appointments: checkModule('appointments'),
+      analytics: checkModule('analytics'),
+      billing: checkModule('billing'),
+      leads: checkModule('leads'),
+      therapists: checkModule('therapists'),
+      recycleBin: checkModule('recycleBin'),
+      settings: checkModule('settings'),
     },
     patientTabs: {
       timeline: true,
-      documents: hasCapability('documents.view'),
-      treatments: hasCapability('treatments.view'),
-      soapNotes: hasCapability('assessments.view'),
-      assessments: hasCapability('assessments.view'),
-      billing: hasCapability('invoices.view'),
+      documents: check('documents.view'),
+      treatments: check('treatments.view'),
+      soapNotes: check('assessments.view'),
+      assessments: check('assessments.view'),
+      billing: check('invoices.view'),
     },
     actions: {
-      createEditPatient: canPerformAction('createEditPatient'),
-      deletePatient: canPerformAction('deletePatient'),
-      manageAppointments: canPerformAction('manageAppointments'),
-      createEditSoapNote: canPerformAction('createEditSoapNote'),
-      createInvoiceRecordPayment: canPerformAction('createInvoiceRecordPayment'),
-      createSellPackage: canPerformAction('createSellPackage'),
-      uploadDownloadDocuments: canPerformAction('uploadDownloadDocuments'),
-      restoreDeletedRecords: canPerformAction('restoreDeletedRecords'),
-      manageUsersAndRoles: canPerformAction('manageUsersAndRoles'),
-      updateClinicSettings: canPerformAction('updateClinicSettings'),
+      createEditPatient: checkAction('createEditPatient'),
+      deletePatient: checkAction('deletePatient'),
+      manageAppointments: checkAction('manageAppointments'),
+      createEditSoapNote: checkAction('createEditSoapNote'),
+      createInvoiceRecordPayment: checkAction('createInvoiceRecordPayment'),
+      createSellPackage: checkAction('createSellPackage'),
+      uploadDownloadDocuments: checkAction('uploadDownloadDocuments'),
+      restoreDeletedRecords: checkAction('restoreDeletedRecords'),
+      manageUsersAndRoles: checkAction('manageUsersAndRoles'),
+      updateClinicSettings: checkAction('updateClinicSettings'),
     },
   };
 }

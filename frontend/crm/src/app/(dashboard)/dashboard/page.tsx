@@ -8,18 +8,17 @@ import { useAppointments } from '../../../features/appointments/api';
 import { useLeads } from '../../../features/leads/api';
 import { usePatients } from '../../../features/patients/api';
 import { useAuthStore } from '../../../store';
-import { canAccessModule, hasCapability } from '../../../config/permissions';
+import { useCanAccessModule, useHasCapability } from '../../../config/permissions';
 import { AccessRestricted } from '../../../components/ui/AccessRestricted';
 import { MotionPage, MotionCardGrid, MotionCard, MotionStat, MotionFadeIn } from '../../../components/motion';
 
 export default function DashboardPage() {
-  const role = useAuthStore((s) => s.role);
-  
-  const canViewFinancials = hasCapability('analytics.clinic_financials');
-  const canViewMyPerf = hasCapability('analytics.my_performance');
-  const canViewAppts = hasCapability('appointments.view');
-  const canViewLeads = hasCapability('leads.view');
-  const canViewPatients = hasCapability('patients.view');
+  const isAllowed = useCanAccessModule('dashboard');
+  const canViewFinancials = useHasCapability('analytics.clinic_financials');
+  const canViewMyPerf = useHasCapability('analytics.my_performance');
+  const canViewAppts = useHasCapability('appointments.view');
+  const canViewLeads = useHasCapability('leads.view');
+  const canViewPatients = useHasCapability('patients.view');
 
   const hasAnyDashboardView = canViewFinancials || canViewMyPerf || canViewAppts || canViewLeads || canViewPatients;
 
@@ -34,7 +33,7 @@ export default function DashboardPage() {
   const { data: leads, isLoading: isLeadsLoading } = useLeads(undefined, canViewLeads);
   const { data: patientsRes, isLoading: isPatientsLoading } = usePatients(undefined, 1, 1, canViewPatients);
 
-  if (!canAccessModule('dashboard')) {
+  if (!isAllowed) {
     return <AccessRestricted message="Dashboard access is restricted." />;
   }
 

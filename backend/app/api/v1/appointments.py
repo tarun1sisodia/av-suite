@@ -81,6 +81,8 @@ async def list_appointments(
     offset: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=500)] = 100,
     scheduled_date: Annotated[date | None, Query(alias="date")] = None,
+    start_date: Annotated[date | None, Query(alias="start_date")] = None,
+    end_date: Annotated[date | None, Query(alias="end_date")] = None,
     therapist_id: Annotated[UUID | None, Query(alias="therapist")] = None,
     patient_id: Annotated[UUID | None, Query(alias="patient")] = None,
     status_filter: Annotated[AppointmentStatus | None, Query(alias="status")] = None,
@@ -96,6 +98,8 @@ async def list_appointments(
     appointments = await service.list_appointments(
         clinic.id,
         scheduled_date=scheduled_date,
+        start_date=start_date,
+        end_date=end_date,
         patient_id=patient_id,
         therapist_id=effective_therapist_id,
         status=status_filter,
@@ -103,10 +107,20 @@ async def list_appointments(
         limit=limit,
     )
 
+    total = await service.count_appointments(
+        clinic.id,
+        scheduled_date=scheduled_date,
+        start_date=start_date,
+        end_date=end_date,
+        patient_id=patient_id,
+        therapist_id=effective_therapist_id,
+        status=status_filter,
+    )
+
     items = [AppointmentResponse.model_validate(a) for a in appointments]
     return AppointmentListResponse(
         items=items,
-        total=len(items),
+        total=total,
         offset=offset,
         limit=limit,
     )

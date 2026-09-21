@@ -19,6 +19,7 @@ class UserRole(StrEnum):
 LEGACY_USER_ROLE_ALIASES = MappingProxyType(
     {
         "physio": UserRole.THERAPIST,
+        "receptionist": UserRole.FRONT_DESK,
     }
 )
 

@@ -52,7 +52,7 @@ export function RescheduleSlideOver({ isOpen, onClose, appointment }: Reschedule
   }, [appointment, reset]);
 
   const onSubmit = async (values: RescheduleFormValues) => {
-    if (!appointment) return;
+    if (!appointment || updateAppointment.isPending) return;
     try {
       // Send datetime string as ISO so backend parses it correctly
       const payload = {
@@ -63,9 +63,9 @@ export function RescheduleSlideOver({ isOpen, onClose, appointment }: Reschedule
       toast.success('Appointment rescheduled successfully');
       reset();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error('Failed to reschedule appointment');
+      toast.error(err.response?.data?.detail || err?.message || 'Failed to reschedule appointment');
     }
   };
 

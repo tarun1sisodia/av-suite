@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { AppShell } from '../../../../components/layout/AppShell';
 import { usePatient, useDeletePatient } from '../../../../features/patients/api';
 import { useAuthStore } from '../../../../store';
-import { getPermissionsForRole, canAccessModule, hasCapability } from '../../../../config/permissions';
+import { usePermissions, useCanAccessModule, useHasCapability, useCanPerformAction } from '../../../../config/permissions';
 import { AccessRestricted } from '../../../../components/ui/AccessRestricted';
 import { TreatmentsTab } from '../../../../features/patients/components/TreatmentsTab';
 import { SoapNotesTab } from '../../../../features/patients/components/SoapNotesTab';
@@ -36,9 +36,17 @@ export default function PatientWorkspacePage() {
   const createRx = useCreatePrescription();
   const generatePdf = useGeneratePrescriptionPdf();
 
-  const permissions = getPermissionsForRole(role).patientTabs;
+  const isAllowed = useCanAccessModule('patients');
+  const { patientTabs: permissions } = usePermissions();
+  const canRestore = useHasCapability('recyclebin.restore');
+  const canCreatePosture = useHasCapability('posture.create');
+  const canViewExercises = useHasCapability('exercises.view');
+  const canCreatePrescriptions = useHasCapability('prescriptions.create');
+  const canViewPrescriptions = useHasCapability('prescriptions.view');
+  const canEditPatient = useCanPerformAction('createEditPatient');
+  const canDeletePatient = useCanPerformAction('deletePatient');
 
-  if (!canAccessModule('patients')) {
+  if (!isAllowed) {
     return (
       <AppShell>
         <AccessRestricted message="Patient workspace access is restricted for your role." />
@@ -169,7 +177,7 @@ export default function PatientWorkspacePage() {
                 </p>
               </div>
             </div>
-            {hasCapability('recyclebin.restore') && (
+            {canRestore && (
               <button
                 onClick={async () => {
                   try {
@@ -246,7 +254,7 @@ export default function PatientWorkspacePage() {
                 <span>WA Session Report</span>
               </button>
 
-              {hasCapability('posture.create') && (
+              {canCreatePosture && (
               <a
                 href={`${(process.env.NEXT_PUBLIC_POSTURE_APP_URL || 'http://localhost:3002').replace(/\/+$/, '')}/analyze?patient_id=${patient.id}`}
                 target="_blank"
@@ -258,7 +266,7 @@ export default function PatientWorkspacePage() {
               </a>
               )}
 
-              {hasCapability('exercises.view') && (
+              {canViewExercises && (
               <a
                 href={`${(process.env.NEXT_PUBLIC_EXERCISE_APP_URL || 'http://localhost:3001').replace(/\/+$/, '')}/prescribe?patient_id=${patient.id}`}
                 target="_blank"
@@ -270,7 +278,7 @@ export default function PatientWorkspacePage() {
               </a>
               )}
 
-              {hasCapability('prescriptions.create') && (
+              {canCreatePrescriptions && (
               <button
                 onClick={handleGenerateRx}
                 disabled={isRxLoading || createRx.isPending || generatePdf.isPending}
@@ -281,7 +289,7 @@ export default function PatientWorkspacePage() {
               </button>
               )}
 
-              {getPermissionsForRole(role).actions.createEditPatient && (
+              {canEditPatient && (
                 <button
                   onClick={() => setIsEditOpen(true)}
                   className="ml-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-lg flex items-center gap-1.5 shadow-xs cursor-pointer transition-colors"
@@ -291,7 +299,7 @@ export default function PatientWorkspacePage() {
                 </button>
               )}
 
-              {getPermissionsForRole(role).actions.deletePatient && (
+              {canDeletePatient && (
                 <button
                   onClick={handleDelete}
                   disabled={deletePatient.isPending}
@@ -360,7 +368,7 @@ export default function PatientWorkspacePage() {
               <p className="text-xs text-slate-500 max-w-md mx-auto">
                 Generates a branded PDF prescription containing clinic logo, diagnosis history, and exercise routine.
               </p>
-              {hasCapability('prescriptions.view') && (
+              {canViewPrescriptions && (
               <button
                 onClick={handleGenerateRx}
                 disabled={generatePdf.isPending || createRx.isPending || isRxLoading}

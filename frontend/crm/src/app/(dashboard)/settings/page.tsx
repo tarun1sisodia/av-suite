@@ -8,7 +8,7 @@ import { AuditLog, User } from '../../../types/api';
 import { useUsers } from '../../../features/users/api';
 import { useAuditLogs } from '../../../features/audit/api';
 import { useAuthStore } from '../../../store';
-import { canAccessModule, hasCapability } from '../../../config/permissions';
+import { useCanAccessModule, useHasCapability } from '../../../config/permissions';
 import { Settings as SettingsIcon, Users, FileText, AlertCircle, Save, Plus, Palette, Upload, Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useClinicSettings, useUpdateClinicSettings } from '../../../features/settings/api';
@@ -23,14 +23,14 @@ export default function SettingsPage() {
   const role = useAuthStore((s) => s.role);
   const userId = useAuthStore((s) => s.userId);
 
-  const hasAccess = canAccessModule('settings');
-  const canViewClinic = hasCapability('settings.view');
-  const canEditClinic = hasCapability('settings.edit');
-  const canViewUsers = hasCapability('users.view');
-  const canCreateUser = hasCapability('users.create');
-  const canDeleteUser = hasCapability('users.delete');
-  const canEditPermissions = hasCapability('permissions.edit');
-  const canViewAudit = hasCapability('audit.view');
+  const hasAccess = useCanAccessModule('settings');
+  const canViewClinic = useHasCapability('settings.view');
+  const canEditClinic = useHasCapability('settings.edit');
+  const canViewUsers = useHasCapability('users.view');
+  const canCreateUser = useHasCapability('users.create');
+  const canDeleteUser = useHasCapability('users.delete');
+  const canEditPermissions = useHasCapability('permissions.edit');
+  const canViewAudit = useHasCapability('audit.view');
 
   const defaultTab: TabKey = canViewClinic ? 'clinic' : canViewUsers ? 'users' : 'audit';
   const [activeTab, setActiveTab] = useState<TabKey>(defaultTab);

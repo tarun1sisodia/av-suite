@@ -42,12 +42,13 @@ const NAV_ITEMS: NavItem[] = [
 export function SidebarNavigation() {
   const pathname = usePathname();
   const role = useAuthStore((s) => s.role);
+  const capabilities = useAuthStore((s) => s.capabilities);
   const clinic = useAuthStore((s) => s.clinic);
   const logout = useAuthStore((s) => s.logout);
   const { isSidebarOpen, toggleSidebar } = useUiStore();
 
   const effectiveClinic = clinic;
-  const visibleItems = NAV_ITEMS.filter((item) => canAccessModule(item.moduleKey));
+  const visibleItems = NAV_ITEMS.filter((item) => canAccessModule(role, item.moduleKey, capabilities));
 
   return (
     <aside

@@ -10,6 +10,7 @@ from app.core.dependencies import get_current_user, require_capability
 from app.enums.permission import CapabilityScope
 from app.models.user import User
 from app.schemas.user import UserRead, UserCreate
+from app.core.rbac import validate_capability_scope
 from app.core.security import get_password_hash
 from app.schemas.envelope import ResponseEnvelope
 from app.repositories.user_permission import UserPermissionRepository
@@ -167,9 +168,19 @@ async def update_user_permissions(
         
     granted_by = current_user.id
     
+    # Validate all incoming capabilities and scopes against registry
+    for p in permissions:
+        try:
+            validate_capability_scope(p.capability_key, p.scope)
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid capability override: {exc}",
+            )
+
     # Lockout Guard: Prevent removing 'permissions.edit' or 'users.edit' capability from last admin
-    new_perms_override = next((p.scope for p in permissions if p.capability_key in ('permissions.edit', 'permissions.manage')), None)
-    new_users_override = next((p.scope for p in permissions if p.capability_key in ('users.edit', 'users.manage')), None)
+    new_perms_override = next((p.scope for p in permissions if p.capability_key == 'permissions.edit'), None)
+    new_users_override = next((p.scope for p in permissions if p.capability_key == 'users.edit'), None)
     
     # We only care if they are explicitly being set to 'none' and target is currently an Admin
     if user.role == UserRole.ADMIN.value and (new_perms_override == 'none' or new_users_override == 'none'):
@@ -180,8 +191,8 @@ async def update_user_permissions(
         has_other_admin_with_perms = False
         for admin in other_admins:
             admin_overrides = await repo.list_for_user_in_clinic(clinic_id, admin.id)
-            perms_override = next((p.scope for p in admin_overrides if p.capability_key in ('permissions.edit', 'permissions.manage')), None)
-            users_override = next((p.scope for p in admin_overrides if p.capability_key in ('users.edit', 'users.manage')), None)
+            perms_override = next((p.scope for p in admin_overrides if p.capability_key == 'permissions.edit'), None)
+            users_override = next((p.scope for p in admin_overrides if p.capability_key == 'users.edit'), None)
             
             # If the other admin does not have a 'none' override for either, they are safe
             if perms_override != 'none' and users_override != 'none':

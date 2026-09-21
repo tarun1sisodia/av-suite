@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { AppShell } from '../../../components/layout/AppShell';
 import { DataTable, Column } from '../../../components/ui/DataTable';
 import { useAuthStore } from '../../../store';
-import { canAccessModule, hasCapability } from '../../../config/permissions';
+import { useCanAccessModule, useHasCapability } from '../../../config/permissions';
 import { Trash2, RotateCcw } from 'lucide-react';
 import { apiClient } from '../../../lib/api-client';
 import { toast } from 'sonner';
@@ -21,8 +21,8 @@ interface DeletedItem {
 }
 
 export default function RecycleBinPage() {
-  const hasAccess = canAccessModule('recycleBin');
-  const canRestore = hasCapability('recyclebin.restore');
+  const hasAccess = useCanAccessModule('recycleBin');
+  const canRestore = useHasCapability('recyclebin.restore');
 
   const [items, setItems] = useState<DeletedItem[]>([]);
   const [isLoading, setIsLoading] = useState(hasAccess);

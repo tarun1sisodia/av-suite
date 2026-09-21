@@ -12,17 +12,18 @@ import { Plus, Download, CreditCard, FileText, Package as PackageIcon, Eye, Prin
 import { toast } from 'sonner';
 import { usePatients } from '../../../features/patients/api';
 import { useAuthStore } from '../../../store';
-import { canAccessModule, canPerformAction, hasCapability } from '../../../config/permissions';
+import { useCanAccessModule, useHasCapability } from '../../../config/permissions';
 import { AccessRestricted } from '../../../components/ui/AccessRestricted';
 
 type TabKey = 'invoices' | 'payments' | 'packages';
 
 export default function BillingPage() {
-  const role = useAuthStore((s) => s.role);
-  const isAllowed = canAccessModule('billing');
-  const canViewInvoices = hasCapability('invoices.view');
-  const canViewPayments = hasCapability('payments.view');
-  const canViewPackages = hasCapability('packages.view');
+  const isAllowed = useCanAccessModule('billing');
+  const canViewInvoices = useHasCapability('invoices.view');
+  const canViewPayments = useHasCapability('payments.view');
+  const canViewPackages = useHasCapability('packages.view');
+  const canRecordPayments = useHasCapability('payments.record');
+  const canCreateInvoices = useHasCapability('invoices.create');
 
   const [activeTab, setActiveTab] = useState<TabKey>(
     canViewInvoices ? 'invoices' : canViewPayments ? 'payments' : 'packages'
@@ -101,7 +102,7 @@ export default function BillingPage() {
       header: 'Actions',
       render: (inv) => (
         <div className="flex items-center gap-2">
-          {hasCapability('invoices.view') && (
+          {canViewInvoices && (
             <button
               onClick={() => {
                 setPreviewInvoice(inv);
@@ -113,7 +114,7 @@ export default function BillingPage() {
               <span>Invoice</span>
             </button>
           )}
-          {inv.status === 'paid' && hasCapability('invoices.view') && (
+          {inv.status === 'paid' && canViewInvoices && (
             <button
               onClick={() => {
                 setPreviewInvoice(inv);
@@ -160,7 +161,7 @@ export default function BillingPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {hasCapability('payments.record') && (
+            {canRecordPayments && (
               <button
                 onClick={() => setIsPaymentOpen(true)}
                 className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-slate-200 font-medium text-xs rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
@@ -169,7 +170,7 @@ export default function BillingPage() {
                 <span>Record Payment</span>
               </button>
             )}
-            {hasCapability('invoices.create') && (
+            {canCreateInvoices && (
               <button
                 onClick={() => setIsInvoiceOpen(true)}
                 className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium text-sm rounded-lg flex items-center gap-2 transition-colors cursor-pointer shadow-sm"

@@ -86,6 +86,25 @@ class LeadService:
             limit=limit,
         )
 
+    async def count_leads(
+        self,
+        clinic_id: UUID,
+        *,
+        stage: LeadStage | None = None,
+        assigned_to: UUID | None = None,
+        source: str | None = None,
+        search: str | None = None,
+    ) -> int:
+        """Count leads for a clinic with stage/assignee/source filtering and search."""
+
+        return await self.lead_repository.count_leads(
+            clinic_id=clinic_id,
+            stage=stage,
+            assigned_to=assigned_to,
+            source=source,
+            search=search,
+        )
+
     async def update_lead(self, clinic_id: UUID, lead_id: UUID, payload: LeadUpdate) -> Lead:
         """Update lead details or stage."""
 

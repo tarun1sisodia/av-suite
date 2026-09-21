@@ -9,17 +9,16 @@ import { AddPatientSlideOver } from '../../../features/patients/components/AddPa
 import { WhatsAppButton } from '../../../components/ui/WhatsAppButton';
 import { Patient, PatientStatus } from '../../../types/api';
 import { Plus, Phone, Trash2 } from 'lucide-react';
-import { useAuthStore } from '../../../store';
-import { canAccessModule, canPerformAction } from '../../../config/permissions';
+import { useCanAccessModule, useCanPerformAction } from '../../../config/permissions';
 import { AccessRestricted } from '../../../components/ui/AccessRestricted';
 import { MotionPage, MotionCardGrid, MotionCard, MotionButton } from '../../../components/motion';
 
 export default function PatientsPage() {
-  const role = useAuthStore((s) => s.role);
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const isAllowed = canAccessModule('patients');
+  const isAllowed = useCanAccessModule('patients');
+  const canCreateEdit = useCanPerformAction('createEditPatient');
   const { data: response, isLoading } = usePatients(searchTerm, page, 10, isAllowed);
   const patients = response?.data || [];
   const meta = response?.meta;
@@ -133,7 +132,7 @@ export default function PatientsPage() {
               <option value="soft_deleted">Soft-deleted</option>
             </select>
 
-            {canPerformAction('createEditPatient') && (
+            {canCreateEdit && (
               <MotionButton
                 onClick={() => setIsAddOpen(true)}
                 className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium text-sm rounded-lg flex items-center gap-2 transition-colors cursor-pointer shadow-sm"

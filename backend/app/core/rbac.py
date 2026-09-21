@@ -201,6 +201,11 @@ def validate_capability_scope(
     return normalized_scope
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 def resolve_capability_scope(
     role: UserRole,
     capability_key: str,
@@ -212,9 +217,16 @@ def resolve_capability_scope(
         return CapabilityScope.NONE
 
     if user_permissions is not None and capability_key in user_permissions:
-        return validate_capability_scope(
-            capability_key, user_permissions[capability_key]
-        )
+        try:
+            return validate_capability_scope(
+                capability_key, user_permissions[capability_key]
+            )
+        except ValueError as exc:
+            logger.warning(
+                f"Invalid permission scope in database for capability '{capability_key}': {exc}. "
+                f"Falling back to NONE."
+            )
+            return CapabilityScope.NONE
 
     return get_role_template(role).get(capability_key, CapabilityScope.NONE)
 

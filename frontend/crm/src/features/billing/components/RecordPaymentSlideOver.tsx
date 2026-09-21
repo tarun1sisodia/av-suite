@@ -8,6 +8,7 @@ import { SlideOver } from '../../../components/ui/SlideOver';
 import { paymentFormSchema, PaymentFormValues } from '../../../lib/schemas';
 import { useRecordPayment, useInvoices } from '../api';
 import { usePatients } from '../../patients/api';
+import { Loader2 } from 'lucide-react';
 
 interface RecordPaymentSlideOverProps {
   isOpen: boolean;
@@ -53,14 +54,15 @@ export function RecordPaymentSlideOver({ isOpen, onClose }: RecordPaymentSlideOv
   }, [patients, setValue, watch]);
 
   const onSubmit = async (values: PaymentFormValues) => {
+    if (recordPayment.isPending) return;
     try {
       await recordPayment.mutateAsync(values);
       toast.success('Payment recorded successfully');
       reset();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error('Failed to record payment');
+      toast.error(err.response?.data?.detail || err?.message || 'Failed to record payment');
     }
   };
 
@@ -156,9 +158,11 @@ export function RecordPaymentSlideOver({ isOpen, onClose }: RecordPaymentSlideOv
           </button>
           <button
             type="submit"
-            className="px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg"
+            disabled={recordPayment.isPending}
+            className="px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg flex items-center gap-2 disabled:opacity-50"
           >
-            Record Payment
+            {recordPayment.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+            <span>{recordPayment.isPending ? 'Recording...' : 'Record Payment'}</span>
           </button>
         </div>
       </form>

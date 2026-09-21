@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../lib/api-client';
 import { Lead, LeadStage } from '../../types/api';
 import { LeadFormValues } from '../../lib/schemas';
+import { PATIENTS_QUERY_KEY } from '../patients/api';
 
 export const LEADS_QUERY_KEY = ['leads'];
 
@@ -59,6 +60,7 @@ export function useConvertLead() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: LEADS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: PATIENTS_QUERY_KEY });
     },
   });
 }

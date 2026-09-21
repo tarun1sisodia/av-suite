@@ -112,10 +112,19 @@ async def list_treatment_sessions(
         limit=limit,
     )
 
+    total = await service.count_sessions(
+        clinic.id,
+        patient_id=patient_id,
+        appointment_id=appointment_id,
+        therapist_id=effective_therapist_id,
+        start_date=start_date,
+        end_date=end_date,
+    )
+
     items = [TreatmentSessionResponse.model_validate(s) for s in sessions]
     return TreatmentSessionListResponse(
         items=items,
-        total=len(items),
+        total=total,
         offset=offset,
         limit=limit,
     )

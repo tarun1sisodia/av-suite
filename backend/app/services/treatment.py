@@ -113,6 +113,27 @@ class TreatmentSessionService:
             limit=limit,
         )
 
+    async def count_sessions(
+        self,
+        clinic_id: UUID,
+        *,
+        patient_id: UUID | None = None,
+        appointment_id: UUID | None = None,
+        therapist_id: UUID | None = None,
+        start_date: date | None = None,
+        end_date: date | None = None,
+    ) -> int:
+        """Count treatment sessions for a clinic with optional filters."""
+
+        return await self.repository.count_sessions(
+            clinic_id=clinic_id,
+            patient_id=patient_id,
+            appointment_id=appointment_id,
+            therapist_id=therapist_id,
+            start_date=start_date,
+            end_date=end_date,
+        )
+
     async def update_session(
         self, clinic_id: UUID, session_id: UUID, payload: TreatmentSessionUpdate
     ) -> TreatmentSession:
@@ -241,6 +262,27 @@ class SoapAssessmentService:
             is_reassessment=is_reassessment,
             offset=offset,
             limit=limit,
+        )
+
+    async def count_assessments(
+        self,
+        clinic_id: UUID,
+        *,
+        patient_id: UUID | None = None,
+        appointment_id: UUID | None = None,
+        therapist_id: UUID | None = None,
+        specialty: str | None = None,
+        is_reassessment: bool | None = None,
+    ) -> int:
+        """Count SOAP assessments for a clinic with optional filters."""
+
+        return await self.repository.count_assessments(
+            clinic_id=clinic_id,
+            patient_id=patient_id,
+            appointment_id=appointment_id,
+            therapist_id=therapist_id,
+            specialty=specialty,
+            is_reassessment=is_reassessment,
         )
 
     async def update_assessment(

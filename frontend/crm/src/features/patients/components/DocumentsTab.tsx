@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { patientDocumentFormSchema, PatientDocumentFormValues } from '../../../lib/schemas';
 import { SlideOver } from '../../../components/ui/SlideOver';
-import { FileUp, FileText, Download, Trash2, Plus, Paperclip } from 'lucide-react';
+import { FileUp, FileText, Download, Trash2, Plus, Paperclip, Loader2 } from 'lucide-react';
 import { API_BASE_URL } from '../../../lib/api-client';
 import { getStoredToken } from '../../../lib/auth';
 import { hasCapability } from '../../../config/permissions';
@@ -50,6 +50,7 @@ export function DocumentsTab({ patientId }: { patientId: string }) {
   const uploadDocument = useUploadPatientDocument();
 
   const onSubmit = (values: PatientDocumentFormValues) => {
+    if (uploadDocument.isPending) return;
     if (!selectedFile) {
       toast.error('Please select a file to upload');
       return;
@@ -75,7 +76,7 @@ export function DocumentsTab({ patientId }: { patientId: string }) {
           setIsSlideOpen(false);
         },
         onError: (err: any) => {
-          toast.error(err?.message || 'Failed to save document.');
+          toast.error(err.response?.data?.detail || err?.message || 'Failed to save document.');
         },
       }
     );
@@ -247,9 +248,11 @@ export function DocumentsTab({ patientId }: { patientId: string }) {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg"
+              disabled={uploadDocument.isPending}
+              className="px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg flex items-center gap-2 disabled:opacity-50"
             >
-              Upload Document
+              {uploadDocument.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+              <span>{uploadDocument.isPending ? 'Uploading...' : 'Upload Document'}</span>
             </button>
           </div>
         </form>

@@ -37,6 +37,7 @@ export function AddPatientSlideOver({ isOpen, onClose }: AddPatientSlideOverProp
   });
 
   const onSubmit = async (values: PatientFormValues) => {
+    if (createPatient.isPending) return;
     try {
       const payload = {
         ...values,
@@ -46,9 +47,9 @@ export function AddPatientSlideOver({ isOpen, onClose }: AddPatientSlideOverProp
       toast.success(`Patient ${values.first_name} ${values.last_name} created successfully`);
       reset();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error('Failed to create patient');
+      toast.error(err.response?.data?.detail || err?.message || 'Failed to create patient');
     }
   };
 

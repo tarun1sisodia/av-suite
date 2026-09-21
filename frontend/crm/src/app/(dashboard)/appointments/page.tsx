@@ -13,7 +13,7 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { toast } from 'sonner';
 import { apiClient } from '../../../lib/api-client';
 import { useAuthStore } from '../../../store';
-import { canAccessModule, canPerformAction, hasCapability } from '../../../config/permissions';
+import { useCanAccessModule, useCanPerformAction, useHasCapability } from '../../../config/permissions';
 import { AccessRestricted } from '../../../components/ui/AccessRestricted';
 
 interface BookingRequest {
@@ -31,8 +31,7 @@ interface BookingRequest {
 type SubTabKey = 'list' | 'requests' | 'bookingLink';
 
 export default function AppointmentsPage() {
-  const role = useAuthStore((s) => s.role);
-  const isAllowed = canAccessModule('appointments');
+  const isAllowed = useCanAccessModule('appointments');
   const { data: appointmentsResponse, isLoading } = useAppointments(undefined, undefined, 1, 10, isAllowed);
   const appointments: Appointment[] = appointmentsResponse?.data || [];
   const updateStatus = useUpdateAppointmentStatus();
@@ -43,9 +42,10 @@ export default function AppointmentsPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'scheduled' | 'completed' | 'cancelled'>('all');
   const [requests, setRequests] = useState<BookingRequest[]>([]);
 
-  const canViewBookingRequests = hasCapability('booking.view');
-  const canApproveBookingRequests = hasCapability('booking.approve');
-  const canEditAppointments = hasCapability('appointments.edit');
+  const canManage = useCanPerformAction('manageAppointments');
+  const canViewBookingRequests = useHasCapability('booking.view');
+  const canApproveBookingRequests = useHasCapability('booking.approve');
+  const canEditAppointments = useHasCapability('appointments.edit');
 
   // Fetch pending appointment requests from backend on mount (only for authorized roles)
   React.useEffect(() => {
@@ -149,7 +149,7 @@ export default function AppointmentsPage() {
             <p className="text-sm text-slate-500">Manage daily schedules & incoming public booking requests</p>
           </div>
 
-          {canPerformAction('manageAppointments') && (
+          {canManage && (
             <button
               onClick={() => setIsAddOpen(true)}
               className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium text-sm rounded-lg flex items-center gap-2 transition-colors cursor-pointer shadow-sm"

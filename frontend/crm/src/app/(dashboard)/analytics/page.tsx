@@ -16,14 +16,14 @@ interface RunningCostItem {
   amount: number;
 }
 
-import { canAccessModule, hasCapability } from '../../../config/permissions';
+import { useCanAccessModule, useHasCapability } from '../../../config/permissions';
 
 export default function AnalyticsPage() {
-  const role = useAuthStore((s) => s.role);
   const [period, setPeriod] = useState<'today' | 'week' | 'month' | 'year'>('month');
 
-  const canViewFinancials = hasCapability('analytics.clinic_financials');
-  const canViewMyPerf = hasCapability('analytics.my_performance');
+  const hasAccess = useCanAccessModule('analytics');
+  const canViewFinancials = useHasCapability('analytics.clinic_financials');
+  const canViewMyPerf = useHasCapability('analytics.my_performance');
 
   const { data: patientsResponse } = usePatients(undefined, 1, 5, canViewFinancials);
   const patients = patientsResponse?.data || [];
@@ -58,7 +58,7 @@ export default function AnalyticsPage() {
     toast.warning('Running costs not saved — backend endpoint not yet wired. Changes have not been persisted.');
   };
 
-  if (!canAccessModule('analytics')) {
+  if (!hasAccess) {
     return <AccessRestricted message="Analytics access is restricted for your role." />;
   }
 

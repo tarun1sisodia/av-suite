@@ -31,7 +31,12 @@ export function UserPermissionsSlideOver({ isOpen, onClose, user }: Props) {
       });
       // Override with existing saved permissions from user_permissions table
       permissions.forEach((p: any) => {
-        permsMap[p.capability_key] = p.scope;
+        const meta = CANONICAL_CAPABILITIES.find((c) => c.key === p.capability_key);
+        if (meta && meta.allowedScopes.includes(p.scope)) {
+          permsMap[p.capability_key] = p.scope;
+        } else if (meta) {
+          permsMap[p.capability_key] = 'none';
+        }
       });
       setLocalPerms(permsMap);
     } else if (user) {
@@ -53,15 +58,19 @@ export function UserPermissionsSlideOver({ isOpen, onClose, user }: Props) {
   };
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!user || updatePermissions.isPending) return;
     
-    // Explicitly send all selected scopes including 'none'
+    // Explicitly send all selected scopes sanitized against allowedScopes
     const payload = Object.entries(localPerms)
       .filter(([_, scope]) => Boolean(scope))
-      .map(([key, scope]) => ({
-        capability_key: key,
-        scope: scope,
-      }));
+      .map(([key, scope]) => {
+        const meta = CANONICAL_CAPABILITIES.find((c) => c.key === key);
+        const validScope = meta && meta.allowedScopes.includes(scope as any) ? scope : 'none';
+        return {
+          capability_key: key,
+          scope: validScope,
+        };
+      });
 
     updatePermissions.mutate(
       { userId: user.id, permissions: payload },
@@ -75,7 +84,7 @@ export function UserPermissionsSlideOver({ isOpen, onClose, user }: Props) {
           onClose();
         },
         onError: (err: any) => {
-          toast.error(err?.message || 'Failed to update permissions');
+          toast.error(err.response?.data?.detail || err?.message || 'Failed to update permissions');
         },
       }
     );

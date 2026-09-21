@@ -70,7 +70,7 @@ export function AddAppointmentSlideOver({ isOpen, onClose }: AddAppointmentSlide
     if (!selectedTherapist || !selectedTime) return false;
     const targetTime = new Date(selectedTime).getTime();
     return existingAppointments.some((apt: any) => {
-      if (apt.therapist_id !== selectedTherapist || apt.status === 'cancelled' || apt.status === 'no_show') return false;
+      if (apt.deleted_at || apt.therapist_id !== selectedTherapist || apt.status === 'cancelled' || apt.status === 'no_show') return false;
       const aptTime = new Date(apt.scheduled_at).getTime();
       const diffMinutes = Math.abs(targetTime - aptTime) / (1000 * 60);
       return diffMinutes < (apt.duration_minutes || 30);
@@ -80,14 +80,15 @@ export function AddAppointmentSlideOver({ isOpen, onClose }: AddAppointmentSlide
   const isOverlapDetected = checkOverlap();
 
   const onSubmit = async (values: AppointmentFormValues) => {
+    if (createAppointment.isPending) return;
     try {
       await createAppointment.mutateAsync(values);
       toast.success('Appointment scheduled successfully');
       reset();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error('Failed to schedule appointment');
+      toast.error(err.response?.data?.detail || err?.message || 'Failed to schedule appointment');
     }
   };
 

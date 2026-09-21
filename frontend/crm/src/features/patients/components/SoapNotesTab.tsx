@@ -6,7 +6,7 @@ import { SoapAssessment } from '../../../types/api';
 import { useAssessments, useCreateAssessment, useUpdateAssessment } from '../../assessments/api';
 import { useAuthStore } from '../../../store';
 import { hasCapability } from '../../../config/permissions';
-import { CheckCircle2, Lock, Unlock, Save, FileCheck, Stethoscope, Heart, Zap, Baby, Activity } from 'lucide-react';
+import { CheckCircle2, Lock, Unlock, Save, FileCheck, Stethoscope, Heart, Zap, Baby, Activity, Loader2 } from 'lucide-react';
 
 interface SpecialtyOption {
   key: string;
@@ -86,6 +86,7 @@ export function SoapNotesTab({
   }, [activeNote, isFinalized]);
 
   const handleFinalize = async () => {
+    if (createAssessment.isPending || updateAssessment.isPending) return;
     try {
       const payload = {
         patient_id: patientId,
@@ -109,7 +110,7 @@ export function SoapNotesTab({
       setActiveNote(updatedNote);
       toast.success('SOAP note finalized & locked');
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || 'Failed to finalize note');
+      toast.error(err.response?.data?.detail || err?.message || 'Failed to finalize note');
     }
   };
 
@@ -118,13 +119,14 @@ export function SoapNotesTab({
       toast.error('You do not have permission to re-open finalized clinical notes');
       return;
     }
+    if (updateAssessment.isPending) return;
     try {
       if (!activeNote.id) return;
       const updatedNote = await updateAssessment.mutateAsync({ id: activeNote.id, values: { finalized: false } });
       setActiveNote(updatedNote);
       toast.success('Note re-opened for editing (Audit log recorded)');
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || 'Failed to re-open note');
+      toast.error(err.response?.data?.detail || err?.message || 'Failed to re-open note');
     }
   };
 
@@ -176,20 +178,26 @@ export function SoapNotesTab({
             hasCapability('assessments.edit') && (
               <button
                 onClick={handleReopen}
-                className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs rounded-lg flex items-center gap-1.5 cursor-pointer"
+                disabled={updateAssessment.isPending}
+                className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-medium text-xs rounded-lg flex items-center gap-1.5 cursor-pointer"
               >
-                <Unlock className="w-3.5 h-3.5" />
-                <span>Re-open Note</span>
+                {updateAssessment.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Unlock className="w-3.5 h-3.5" />}
+                <span>{updateAssessment.isPending ? 'Re-opening...' : 'Re-open Note'}</span>
               </button>
             )
           ) : (
             (hasCapability('assessments.create') || hasCapability('assessments.edit')) && (
               <button
                 onClick={handleFinalize}
-                className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs rounded-lg flex items-center gap-1.5 shadow-sm cursor-pointer"
+                disabled={createAssessment.isPending || updateAssessment.isPending}
+                className="px-4 py-2 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-semibold text-xs rounded-lg flex items-center gap-1.5 shadow-sm cursor-pointer"
               >
-                <FileCheck className="w-4 h-4" />
-                <span>Finalize & Lock Note</span>
+                {(createAssessment.isPending || updateAssessment.isPending) ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <FileCheck className="w-4 h-4" />
+                )}
+                <span>{(createAssessment.isPending || updateAssessment.isPending) ? 'Finalizing...' : 'Finalize & Lock Note'}</span>
               </button>
             )
           )}

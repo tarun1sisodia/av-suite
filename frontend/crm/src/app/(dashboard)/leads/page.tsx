@@ -8,7 +8,7 @@ import { Lead, LeadStage } from '../../../types/api';
 import { Plus, UserCheck, Phone, Mail, Search, List, LayoutGrid, CalendarClock, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '../../../store';
-import { canAccessModule, hasCapability } from '../../../config/permissions';
+import { useCanAccessModule, useHasCapability } from '../../../config/permissions';
 import { AccessRestricted } from '../../../components/ui/AccessRestricted';
 
 const STAGES: { key: LeadStage; label: string; color: string }[] = [
@@ -20,11 +20,11 @@ const STAGES: { key: LeadStage; label: string; color: string }[] = [
 ];
 
 export default function LeadsPage() {
-  const hasAccess = canAccessModule('leads');
-  const canCreateLead = hasCapability('leads.create');
-  const canConvertLead = hasCapability('leads.convert');
-  const canEditLead = hasCapability('leads.edit');
-  const canDeleteLead = hasCapability('leads.delete');
+  const hasAccess = useCanAccessModule('leads');
+  const canCreateLead = useHasCapability('leads.create');
+  const canConvertLead = useHasCapability('leads.convert');
+  const canEditLead = useHasCapability('leads.edit');
+  const canDeleteLead = useHasCapability('leads.delete');
 
   const { data: leads = [], isLoading } = useLeads(undefined, hasAccess);
   const updateStage = useUpdateLeadStage();
@@ -36,12 +36,13 @@ export default function LeadsPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleConvert = async (leadId: string, leadName: string) => {
+    if (convertLead.isPending) return;
     try {
       await convertLead.mutateAsync(leadId);
       toast.success(`Lead ${leadName} converted to Patient successfully!`);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error('Failed to convert lead');
+      toast.error(err.response?.data?.detail || err?.message || 'Failed to convert lead');
     }
   };
 

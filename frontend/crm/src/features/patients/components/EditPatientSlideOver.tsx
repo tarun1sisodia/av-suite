@@ -53,6 +53,7 @@ export function EditPatientSlideOver({ isOpen, onClose, patient }: EditPatientSl
   }, [patient, reset]);
 
   const onSubmit = async (values: PatientFormValues) => {
+    if (updatePatient.isPending) return;
     try {
       const payload = {
         ...values,
@@ -61,9 +62,9 @@ export function EditPatientSlideOver({ isOpen, onClose, patient }: EditPatientSl
       await updatePatient.mutateAsync({ id: patient.id, values: payload });
       toast.success(`Patient ${values.first_name} ${values.last_name} updated successfully`);
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error('Failed to update patient');
+      toast.error(err.response?.data?.detail || err?.message || 'Failed to update patient');
     }
   };
 

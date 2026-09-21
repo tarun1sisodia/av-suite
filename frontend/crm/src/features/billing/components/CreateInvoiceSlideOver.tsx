@@ -63,6 +63,7 @@ export function CreateInvoiceSlideOver({ isOpen, onClose }: CreateInvoiceSlideOv
   const totalAmount = Math.max(0, subtotal - discountAmount + taxAmount);
 
   const onSubmit = async (values: InvoiceFormValues) => {
+    if (createInvoice.isPending) return;
     try {
       const payload: InvoiceFormValues = {
         ...values,
@@ -77,9 +78,9 @@ export function CreateInvoiceSlideOver({ isOpen, onClose }: CreateInvoiceSlideOv
       toast.success('Invoice created successfully');
       reset();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error('Failed to create invoice');
+      toast.error(err.response?.data?.detail || err?.message || 'Failed to create invoice');
     }
   };
 

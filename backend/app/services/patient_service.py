@@ -41,11 +41,13 @@ def apply_patient_scope(query, scope: CapabilityScope, user_id: str):
         u_id = uuid.UUID(str(user_id))
         has_appointment = exists().where(
             Appointment.patient_id == Patient.id,
-            Appointment.therapist_id == u_id
+            Appointment.therapist_id == u_id,
+            Appointment.deleted_at.is_(None),
         )
         has_treatment = exists().where(
             TreatmentSession.patient_id == Patient.id,
-            TreatmentSession.therapist_id == u_id
+            TreatmentSession.therapist_id == u_id,
+            TreatmentSession.deleted_at.is_(None),
         )
         return query.where(or_(has_appointment, has_treatment))
     return query
@@ -198,10 +200,27 @@ async def create_patient(
     try:
         logger.info(f"Creating patient in clinic {clinic_id}")
         
+        c_uuid = uuid.UUID(str(clinic_id))
+
+        # Check for duplicate active patient by phone number
+        if patient_in.phone:
+            existing_stmt = select(Patient).where(
+                Patient.clinic_id == c_uuid,
+                Patient.phone == patient_in.phone,
+                Patient.deleted_at.is_(None)
+            )
+            existing_patient = (await db.execute(existing_stmt)).scalar_one_or_none()
+            if existing_patient:
+                from fastapi import HTTPException
+                raise HTTPException(
+                    status_code=409,
+                    detail=f"An active patient with phone '{patient_in.phone}' already exists ({existing_patient.first_name} {existing_patient.last_name})."
+                )
+
         # Patient object create karte hain
         # model_dump(): Pydantic schema se dict extract karte hain
         patient = Patient(
-            clinic_id=uuid.UUID(clinic_id),
+            clinic_id=c_uuid,
             **patient_in.model_dump()  # Unpacking schema fields
         )
         
@@ -222,6 +241,9 @@ async def create_patient(
         await db.rollback()
         raise
     except Exception as e:
+        if type(e).__name__ == "HTTPException":
+            await db.rollback()
+            raise
         logger.error(f"Create patient error: {str(e)}")
         await db.rollback()
         raise

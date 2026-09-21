@@ -18,6 +18,33 @@ class LeadRepository(BaseRepository[Lead]):
 
         super().__init__(session, Lead)
 
+    def _build_filter_statement(
+        self,
+        *,
+        clinic_id: UUID | None = None,
+        stage: LeadStage | None = None,
+        assigned_to: UUID | None = None,
+        source: str | None = None,
+        search: str | None = None,
+    ):
+        statement = select(Lead)
+        if stage is not None:
+            statement = statement.where(Lead.stage == stage)
+        if assigned_to is not None:
+            statement = statement.where(Lead.assigned_to == assigned_to)
+        if source is not None:
+            statement = statement.where(Lead.source == source)
+        if search:
+            search_pattern = f"%{search.strip()}%"
+            statement = statement.where(
+                or_(
+                    Lead.name.ilike(search_pattern),
+                    Lead.phone.ilike(search_pattern),
+                )
+            )
+        statement = self._apply_soft_delete_filter(statement)
+        return self._apply_clinic_scope(statement, clinic_id)
+
     async def list_leads(
         self,
         *,
@@ -32,17 +59,31 @@ class LeadRepository(BaseRepository[Lead]):
         """List leads with optional stage, assignee, source, search, and clinic scoping."""
 
         effective_limit = min(limit, 500)
-        statement = select(Lead)
+        statement = self._build_filter_statement(
+            clinic_id=clinic_id, stage=stage, assigned_to=assigned_to, source=source, search=search
+        ).offset(offset).limit(effective_limit)
+        result = await self.session.scalars(statement)
+        return list(result.all())
 
+    async def count_leads(
+        self,
+        *,
+        clinic_id: UUID | None = None,
+        stage: LeadStage | None = None,
+        assigned_to: UUID | None = None,
+        source: str | None = None,
+        search: str | None = None,
+    ) -> int:
+        """Count leads with optional stage, assignee, source, search, and clinic scoping."""
+
+        from sqlalchemy import func
+        statement = select(func.count()).select_from(Lead)
         if stage is not None:
             statement = statement.where(Lead.stage == stage)
-
         if assigned_to is not None:
             statement = statement.where(Lead.assigned_to == assigned_to)
-
         if source is not None:
             statement = statement.where(Lead.source == source)
-
         if search:
             search_pattern = f"%{search.strip()}%"
             statement = statement.where(
@@ -51,8 +92,7 @@ class LeadRepository(BaseRepository[Lead]):
                     Lead.phone.ilike(search_pattern),
                 )
             )
-
         statement = self._apply_soft_delete_filter(statement)
-        statement = self._apply_clinic_scope(statement, clinic_id).offset(offset).limit(effective_limit)
-        result = await self.session.scalars(statement)
-        return list(result.all())
+        statement = self._apply_clinic_scope(statement, clinic_id)
+        result = await self.session.scalar(statement)
+        return int(result or 0)

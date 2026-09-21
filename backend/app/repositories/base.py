@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from typing import Any, Generic, Protocol, TypeVar
 from uuid import UUID
 
-from sqlalchemy import Select, exists, select
+from sqlalchemy import Select, exists, select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped
 
@@ -197,3 +197,13 @@ class BaseRepository(Generic[ModelT]):
         query = select(exists(statement))
         result = await self.session.scalar(query)
         return bool(result)
+
+    async def count(self, *, clinic_id: UUID | None = None, include_deleted: bool = False) -> int:
+        """Return the total count of rows for the model matching clinic scope and soft delete."""
+
+        statement = select(func.count()).select_from(self.model)
+        statement = self._apply_clinic_scope(statement, clinic_id)
+        statement = self._apply_soft_delete_filter(statement, include_deleted=include_deleted)
+        result = await self.session.scalar(statement)
+        return int(result or 0)
+

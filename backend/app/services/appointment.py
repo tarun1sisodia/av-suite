@@ -78,6 +78,8 @@ class AppointmentService:
         clinic_id: UUID,
         *,
         scheduled_date: date | None = None,
+        start_date: date | None = None,
+        end_date: date | None = None,
         patient_id: UUID | None = None,
         therapist_id: UUID | None = None,
         status: AppointmentStatus | None = None,
@@ -89,11 +91,36 @@ class AppointmentService:
         return await self.appointment_repository.list_appointments(
             clinic_id=clinic_id,
             scheduled_date=scheduled_date,
+            start_date=start_date,
+            end_date=end_date,
             patient_id=patient_id,
             therapist_id=therapist_id,
             status=status,
             offset=offset,
             limit=limit,
+        )
+
+    async def count_appointments(
+        self,
+        clinic_id: UUID,
+        *,
+        scheduled_date: date | None = None,
+        start_date: date | None = None,
+        end_date: date | None = None,
+        patient_id: UUID | None = None,
+        therapist_id: UUID | None = None,
+        status: AppointmentStatus | None = None,
+    ) -> int:
+        """Count appointments for a clinic with optional filters."""
+
+        return await self.appointment_repository.count_appointments(
+            clinic_id=clinic_id,
+            scheduled_date=scheduled_date,
+            start_date=start_date,
+            end_date=end_date,
+            patient_id=patient_id,
+            therapist_id=therapist_id,
+            status=status,
         )
 
     async def update_appointment(

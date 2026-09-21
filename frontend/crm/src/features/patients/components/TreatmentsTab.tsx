@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { treatmentSessionFormSchema, TreatmentSessionFormValues } from '../../../lib/schemas';
 import { SlideOver } from '../../../components/ui/SlideOver';
-import { Plus, Calendar, Activity, FileText } from 'lucide-react';
+import { Plus, Calendar, Activity, FileText, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../../../store';
 import { hasCapability } from '../../../config/permissions';
 
@@ -39,6 +39,7 @@ export function TreatmentsTab({ patientId }: { patientId: string }) {
   const createSession = useCreateTreatmentSession();
 
   const onSubmit = (values: TreatmentSessionFormValues) => {
+    if (createSession.isPending) return;
     createSession.mutate(values, {
       onSuccess: () => {
         toast.success('Treatment session saved successfully.');
@@ -46,7 +47,7 @@ export function TreatmentsTab({ patientId }: { patientId: string }) {
         setIsSlideOpen(false);
       },
       onError: (err: any) => {
-        toast.error(err?.message || 'Failed to save treatment session.');
+        toast.error(err.response?.data?.detail || err?.message || 'Failed to save treatment session.');
       },
     });
   };
@@ -183,9 +184,11 @@ export function TreatmentsTab({ patientId }: { patientId: string }) {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg"
+              disabled={createSession.isPending}
+              className="px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg flex items-center gap-2 disabled:opacity-50"
             >
-              Save Session
+              {createSession.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+              <span>{createSession.isPending ? 'Saving...' : 'Save Session'}</span>
             </button>
           </div>
         </form>
