@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { AppShell } from '../../../components/layout/AppShell';
 import { DataTable, Column } from '../../../components/ui/DataTable';
 import { useHasCapability, useCanAccessModule } from '../../../config/permissions';
 import { RotateCcw, Trash2, AlertTriangle, X } from 'lucide-react';
@@ -161,11 +160,7 @@ export default function RecycleBinPage() {
   };
 
   if (!hasAccess) {
-    return (
-      <AppShell>
-        <AccessRestricted message="Recycle bin access is restricted." />
-      </AppShell>
-    );
+    return <AccessRestricted message="Recycle bin access is restricted." />;
   }
 
   const columns: Column<DeletedItem>[] = [
@@ -228,7 +223,7 @@ export default function RecycleBinPage() {
   ];
 
   return (
-    <AppShell>
+    <>
       {confirmItem && (
         <ConfirmDeleteModal
           item={confirmItem}
@@ -255,6 +250,6 @@ export default function RecycleBinPage() {
           emptyMessage="Recycle bin is empty."
         />
       </div>
-    </AppShell>
+    </>
   );
 }

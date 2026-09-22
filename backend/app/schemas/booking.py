@@ -40,6 +40,7 @@ class AppointmentRequestApprovePayload(BaseModel):
     therapist_id: UUID | None = Field(default=None, description="Assigned therapist staff user UUID.")
     scheduled_date: date | None = Field(default=None, description="Confirmed appointment date.")
     start_time: str | None = Field(default=None, description="Confirmed start time (HH:MM:SS format).")
+    duration_minutes: int | None = Field(default=30, ge=5, le=480, description="Duration in minutes.")
     notes: str | None = Field(default=None, max_length=2000, description="Staff notes.")
 
 
@@ -49,6 +50,7 @@ class AppointmentRequestResponse(AppointmentRequestBase):
     id: UUID
     clinic_id: UUID
     status: AppointmentRequestStatus
+    is_returning_patient: bool = False
     created_at: datetime
     updated_at: datetime
 
@@ -72,3 +74,21 @@ class PublicClinicBrandingResponse(BaseModel):
     slug: str | None = None
     logo_url: str | None = None
     brand_color: str | None = None
+
+
+class BusySlot(BaseModel):
+    """Schema representing an occupied appointment time slot."""
+
+    start_time: str = Field(..., description="Start time in HH:MM format.")
+    end_time: str = Field(..., description="End time in HH:MM format.")
+    therapist_id: UUID | None = Field(default=None, description="Assigned therapist ID.")
+
+
+class SlotAvailabilityResponse(BaseModel):
+    """Schema representing clinic appointment slot availability on a specific date."""
+
+    clinic_id: UUID
+    date: date
+    busy_slots: list[BusySlot]
+    total_busy: int
+

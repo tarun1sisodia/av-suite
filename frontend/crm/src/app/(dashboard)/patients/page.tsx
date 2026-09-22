@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AppShell } from '../../../components/layout/AppShell';
 import { DataTable, Column } from '../../../components/ui/DataTable';
 import { usePatients } from '../../../features/patients/api';
 import { AddPatientSlideOver } from '../../../features/patients/components/AddPatientSlideOver';
@@ -111,8 +110,7 @@ export default function PatientsPage() {
   ];
 
   return (
-    <AppShell>
-      <MotionPage className="space-y-6">
+    <MotionPage className="space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Patients Directory</h1>
@@ -163,6 +161,5 @@ export default function PatientsPage() {
 
         <AddPatientSlideOver isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} />
       </MotionPage>
-    </AppShell>
   );
 }

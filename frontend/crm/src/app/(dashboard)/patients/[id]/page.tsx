@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { AppShell } from '../../../../components/layout/AppShell';
 import { usePatient, useDeletePatient } from '../../../../features/patients/api';
 import { useAuthStore } from '../../../../store';
 import { usePermissions, useCanAccessModule, useHasCapability, useCanPerformAction } from '../../../../config/permissions';
@@ -47,80 +46,68 @@ export default function PatientWorkspacePage() {
   const canDeletePatient = useCanPerformAction('deletePatient');
 
   if (!isAllowed) {
-    return (
-      <AppShell>
-        <AccessRestricted message="Patient workspace access is restricted for your role." />
-      </AppShell>
-    );
+    return <AccessRestricted message="Patient workspace access is restricted for your role." />;
   }
 
   if (isLoading) {
-    return (
-      <AppShell>
-        <div className="p-8 text-center text-slate-400">Loading patient workspace...</div>
-      </AppShell>
-    );
+    return <div className="p-8 text-center text-slate-400">Loading patient workspace...</div>;
   }
 
   if (!patient) {
     return (
-      <AppShell>
-        <div className="p-8 text-center space-y-4">
-          <p className="text-slate-500 font-medium">Patient not found</p>
-          <button
-            onClick={() => router.push('/patients')}
-            className="px-4 py-2 bg-teal-600 text-white text-xs rounded-lg font-medium"
-          >
-            Return to Patients Directory
-          </button>
-        </div>
-      </AppShell>
+      <div className="p-8 text-center space-y-4">
+        <p className="text-slate-500 font-medium">Patient not found</p>
+        <button
+          onClick={() => router.push('/patients')}
+          className="px-4 py-2 bg-teal-600 text-white text-xs rounded-lg font-medium"
+        >
+          Return to Patients Directory
+        </button>
+      </div>
     );
   }
 
   if (patient.deleted_at) {
     return (
-      <AppShell>
-        <div className="space-y-6">
-          {/* Back Link */}
-          <button
-            onClick={() => router.push('/patients')}
-            className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-teal-600 font-medium transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Patients Directory</span>
-          </button>
+      <div className="space-y-6">
+        {/* Back Link */}
+        <button
+          onClick={() => router.push('/patients')}
+          className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-teal-600 font-medium transition-colors cursor-pointer"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back to Patients Directory</span>
+        </button>
 
-          {/* Soft-deleted Alert Banner */}
-          <div className="p-6 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
-            <div className="flex items-start sm:items-center gap-3 text-rose-800 dark:text-rose-200 text-sm">
-              <Trash2 className="w-6 h-6 text-rose-600 shrink-0 mt-0.5 sm:mt-0" />
-              <div>
-                <p className="font-bold text-base">This patient is soft-deleted</p>
-                <p className="text-xs text-rose-600 dark:text-rose-400 mt-0.5">
-                  Patient <span className="font-semibold">{patient.first_name} {patient.last_name}</span> was deleted on {new Date(patient.deleted_at).toLocaleString()} and is currently in the Recycle Bin.
-                </p>
-              </div>
+        {/* Soft-deleted Alert Banner */}
+        <div className="p-6 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+          <div className="flex items-start sm:items-center gap-3 text-rose-800 dark:text-rose-200 text-sm">
+            <Trash2 className="w-6 h-6 text-rose-600 shrink-0 mt-0.5 sm:mt-0" />
+            <div>
+              <p className="font-bold text-base">This patient is soft-deleted</p>
+              <p className="text-xs text-rose-600 dark:text-rose-400 mt-0.5">
+                Patient <span className="font-semibold">{patient.first_name} {patient.last_name}</span> was deleted on {new Date(patient.deleted_at).toLocaleString()} and is currently in the Recycle Bin.
+              </p>
             </div>
-            {canRestore && (
-              <button
-                onClick={async () => {
-                  try {
-                    await apiClient.post(`/recycle-bin/patient/${patient.id}/restore`);
-                    toast.success('Patient restored successfully');
-                    window.location.reload();
-                  } catch {
-                    toast.error('Failed to restore patient');
-                  }
-                }}
-                className="px-4 py-2 bg-white dark:bg-slate-900 hover:bg-rose-100 dark:hover:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-700 rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-xs whitespace-nowrap"
-              >
-                Restore Patient
-              </button>
-            )}
           </div>
+          {canRestore && (
+            <button
+              onClick={async () => {
+                try {
+                  await apiClient.post(`/recycle-bin/patient/${patient.id}/restore`);
+                  toast.success('Patient restored successfully');
+                  window.location.reload();
+                } catch {
+                  toast.error('Failed to restore patient');
+                }
+              }}
+              className="px-4 py-2 bg-white dark:bg-slate-900 hover:bg-rose-100 dark:hover:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-700 rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-xs whitespace-nowrap"
+            >
+              Restore Patient
+            </button>
+          )}
         </div>
-      </AppShell>
+      </div>
     );
   }
 
@@ -200,7 +187,7 @@ export default function PatientWorkspacePage() {
   });
 
   return (
-    <AppShell>
+    <>
       <div className="space-y-6">
         {/* Back Link */}
         <button
@@ -406,6 +393,6 @@ export default function PatientWorkspacePage() {
         </div>
       </div>
       <EditPatientSlideOver isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} patient={patient} />
-    </AppShell>
+    </>
   );
 }

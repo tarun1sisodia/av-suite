@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { AppShell } from '../../../components/layout/AppShell';
 import { useAuthStore } from '../../../store';
 import { usePatients } from '../../../features/patients/api';
 import { useAnalyticsOverview, useMyPerformance } from '../../../features/analytics/api';
@@ -66,8 +65,7 @@ export default function AnalyticsPage() {
   if (!canViewFinancials && canViewMyPerf) {
     const perf = myPerformance;
     return (
-      <AppShell>
-        <div className="p-6 space-y-6">
+      <div className="p-6 space-y-6">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-900/40">
               <ActivitySquare className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
@@ -101,13 +99,11 @@ export default function AnalyticsPage() {
             </div>
           )}
         </div>
-      </AppShell>
     );
   }
 
   return (
-    <AppShell>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header & Period Tabs */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
@@ -275,6 +271,5 @@ export default function AnalyticsPage() {
           </div>
         </div>
       </div>
-    </AppShell>
   );
 }

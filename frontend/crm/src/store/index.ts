@@ -56,11 +56,24 @@ export const useAuthStore = create<AuthState>((set) => ({
     if (token) {
       const claims = parseJwt(token);
       if (claims) {
+        let savedClinic: ClinicBranding | null = null;
+        if (typeof window !== 'undefined') {
+          try {
+            const raw = localStorage.getItem('av_clinic_branding');
+            if (raw) savedClinic = JSON.parse(raw);
+          } catch {}
+        }
+        if (savedClinic?.branding_color && typeof document !== 'undefined') {
+          document.documentElement.style.setProperty('--brand-navy', savedClinic.branding_color);
+          document.documentElement.style.setProperty('--sidebar-bg', savedClinic.branding_color);
+          document.documentElement.style.setProperty('--primary', savedClinic.branding_color);
+        }
         set({
           token,
           userId: claims.sub,
           clinicId: claims.clinic_id,
           role: claims.role,
+          clinic: savedClinic,
           isAuthenticated: true,
         });
         useAuthStore.getState().fetchMe();
@@ -90,8 +103,17 @@ export const useAuthStore = create<AuthState>((set) => ({
           capabilities: data.capabilities || {},
           isAuthenticated: true,
         });
-        if (data.clinic?.branding_color && typeof document !== 'undefined') {
-          document.documentElement.style.setProperty('--brand-navy', data.clinic.branding_color);
+        if (data.clinic) {
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.setItem('av_clinic_branding', JSON.stringify(data.clinic));
+            } catch {}
+          }
+          if (data.clinic.branding_color && typeof document !== 'undefined') {
+            document.documentElement.style.setProperty('--brand-navy', data.clinic.branding_color);
+            document.documentElement.style.setProperty('--sidebar-bg', data.clinic.branding_color);
+            document.documentElement.style.setProperty('--primary', data.clinic.branding_color);
+          }
         }
       }
     } catch (e) {
@@ -100,6 +122,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   logout: () => {
     clearStoredTokens();
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('av_clinic_branding');
+      } catch {}
+    }
     set({
       token: null,
       userId: null,
@@ -111,6 +138,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
   },
 }));
+
 
 export const useUiStore = create<UiState>((set) => ({
   isSidebarOpen: true,

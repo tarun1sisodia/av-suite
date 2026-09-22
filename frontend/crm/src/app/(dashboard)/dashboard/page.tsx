@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { AppShell } from '../../../components/layout/AppShell';
 import { Users, Calendar, DollarSign, UserCheck, Loader2, Stethoscope, TrendingUp, CheckCircle2 } from 'lucide-react';
 import { useAnalyticsOverview, useMyPerformance } from '../../../features/analytics/api';
 import { useAppointments } from '../../../features/appointments/api';
@@ -46,8 +45,7 @@ export default function DashboardPage() {
   const kpiCardClass = 'bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-shadow duration-200';
 
   return (
-    <AppShell>
-      <MotionPage className="space-y-6">
+    <MotionPage className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Dashboard Overview</h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -207,6 +205,5 @@ export default function DashboardPage() {
           </MotionCardGrid>
         )}
       </MotionPage>
-    </AppShell>
   );
 }

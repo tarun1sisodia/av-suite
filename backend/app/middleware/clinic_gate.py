@@ -29,8 +29,10 @@ logger = logging.getLogger(__name__)
 PUBLIC_PATH_PREFIXES = (
     f"{settings.API_V1_PREFIX}/auth",
     f"{settings.API_V1_PREFIX}/booking/branding",
+    f"{settings.API_V1_PREFIX}/booking/availability",
     f"{settings.API_V1_PREFIX}/booking/request",
 )
+
 
 
 class ClinicGateMiddleware(BaseHTTPMiddleware):

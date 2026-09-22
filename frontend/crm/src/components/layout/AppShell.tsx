@@ -15,6 +15,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     if (effectiveClinic?.branding_color) {
       document.documentElement.style.setProperty('--brand-navy', effectiveClinic.branding_color);
+      document.documentElement.style.setProperty('--sidebar-bg', effectiveClinic.branding_color);
+      document.documentElement.style.setProperty('--primary', effectiveClinic.branding_color);
     }
   }, [effectiveClinic?.branding_color]);
 
@@ -49,11 +51,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
 
             <div className="flex items-center gap-3">
+              {effectiveClinic?.branding_logo_url && (
+                <img
+                  src={effectiveClinic.branding_logo_url}
+                  alt="Clinic Logo"
+                  className="h-7 w-auto max-w-[120px] object-contain rounded"
+                />
+              )}
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800 dark:bg-teal-900/40 dark:text-teal-300">
                 {effectiveClinic?.name || 'Aarogya Clinic'}
               </span>
             </div>
           </header>
+
 
           {/* Page Body */}
           <main className="flex-1 p-6 overflow-y-auto">{children}</main>

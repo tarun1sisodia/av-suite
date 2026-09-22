@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { AppShell } from '../../../components/layout/AppShell';
 import { useAppointments, useUpdateAppointmentStatus } from '../../../features/appointments/api';
 import { useClinicSettings } from '../../../features/settings/api';
 import { AddAppointmentSlideOver } from '../../../features/appointments/components/AddAppointmentSlideOver';
@@ -142,8 +141,7 @@ export default function AppointmentsPage() {
   const pendingRequestsCount = requests.filter((r) => r.status === 'pending').length;
 
   return (
-    <AppShell>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
@@ -433,6 +431,5 @@ export default function AppointmentsPage() {
           appointment={rescheduleAppointment}
         />
       </div>
-    </AppShell>
   );
 }

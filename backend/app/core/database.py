@@ -8,8 +8,8 @@ from app.core.config import settings
 # so those args are only passed for real (Postgres) databases.
 _engine_kwargs: dict[str, object] = {"echo": settings.DEBUG, "pool_pre_ping": True}
 if not settings.DATABASE_URL.startswith("sqlite"):
-    _engine_kwargs["pool_size"] = 5
-    _engine_kwargs["max_overflow"] = 10
+    _engine_kwargs["pool_size"] = 10
+    _engine_kwargs["max_overflow"] = 20
 
 engine = create_async_engine(settings.DATABASE_URL, **_engine_kwargs)
 

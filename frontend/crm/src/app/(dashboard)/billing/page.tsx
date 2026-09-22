@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { AppShell } from '../../../components/layout/AppShell';
 import { DataTable, Column } from '../../../components/ui/DataTable';
 import { useInvoices, usePayments, usePackages } from '../../../features/billing/api';
 import { CreateInvoiceSlideOver } from '../../../features/billing/components/CreateInvoiceSlideOver';
@@ -151,8 +150,7 @@ export default function BillingPage() {
   ];
 
   return (
-    <AppShell>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header & Actions */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
@@ -260,6 +258,5 @@ export default function BillingPage() {
           mode={previewMode}
         />
       </div>
-    </AppShell>
   );
 }

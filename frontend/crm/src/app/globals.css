@@ -160,4 +160,14 @@
     from { opacity: 0; transform: scale(0.9); }
     to { opacity: 1; transform: scale(1); }
   }
+
+  /* Content visibility optimization for heavy off-screen tables and lists */
+  .cv-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 480px;
+  }
+  .cv-auto-table {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 600px;
+  }
 }

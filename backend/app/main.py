@@ -61,6 +61,30 @@ import os
 
 
 
+import time
+from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi import Request
+
+
+class RequestTimingMiddleware(BaseHTTPMiddleware):
+    """Measures endpoint execution duration and adds X-Process-Time header."""
+
+    async def dispatch(self, request: Request, call_next):
+        start_time = time.perf_counter()
+        response = await call_next(request)
+        process_time_ms = (time.perf_counter() - start_time) * 1000
+        response.headers["X-Process-Time"] = f"{process_time_ms:.2f}ms"
+        logger.info(
+            f"[TIMING] {request.method} {request.url.path} - "
+            f"{response.status_code} - {process_time_ms:.2f}ms"
+        )
+        return response
+
+
+# Timing Middleware (records execution duration)
+app.add_middleware(RequestTimingMiddleware)
+logger.info("RequestTimingMiddleware registered")
+
 # Clinic Gate Middleware
 # JWT token verification aur clinic isolation middleware
 # add_middleware method se priority order define karte hain

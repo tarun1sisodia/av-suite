@@ -113,7 +113,10 @@ async def get_patients(
         # Clinic-specific query - Multi-tenant isolation
         # Clinic ID se filter karte hain (security)
         # UUID format mein convert karte hain string se
-        query = select(Patient).where(Patient.clinic_id == uuid.UUID(clinic_id))
+        query = select(Patient).where(
+            Patient.clinic_id == uuid.UUID(clinic_id),
+            Patient.deleted_at.is_(None)
+        )
         if scope:
             query = apply_patient_scope(query, scope, user_id)
 
@@ -302,7 +305,8 @@ async def get_patient_by_id(
         # Patient ID aur Clinic ID both check karte hain (security)
         query = select(Patient).where(
             Patient.id == uuid.UUID(patient_id),
-            Patient.clinic_id == uuid.UUID(clinic_id)
+            Patient.clinic_id == uuid.UUID(clinic_id),
+            Patient.deleted_at.is_(None)
         )
         if scope:
             query = apply_patient_scope(query, scope, user_id)
@@ -411,11 +415,11 @@ async def search_patients(
         limit = pagination.page_size
         
         if search.isdigit() and len(search) == 10:
-            query = select(Patient).where(Patient.phone.ilike(f"%{search.strip()}%"), Patient.clinic_id == c_id)
+            query = select(Patient).where(Patient.phone.ilike(f"%{search.strip()}%"), Patient.clinic_id == c_id, Patient.deleted_at.is_(None))
         elif '@' in search:
-            query = select(Patient).where(Patient.email.ilike(f"%{search.strip()}%"), Patient.clinic_id == c_id)
+            query = select(Patient).where(Patient.email.ilike(f"%{search.strip()}%"), Patient.clinic_id == c_id, Patient.deleted_at.is_(None))
         else:
-            query = select(Patient).where(Patient.full_name.ilike(f"%{search.strip()}%"), Patient.clinic_id == c_id)
+            query = select(Patient).where(Patient.full_name.ilike(f"%{search.strip()}%"), Patient.clinic_id == c_id, Patient.deleted_at.is_(None))
             
         if scope:
             query = apply_patient_scope(query, scope, user_id)

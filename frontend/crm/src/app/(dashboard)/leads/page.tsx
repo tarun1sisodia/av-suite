@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { AppShell } from '../../../components/layout/AppShell';
 import { useLeads, useUpdateLeadStage, useConvertLead, useDeleteLead } from '../../../features/leads/api';
 import { AddLeadSlideOver } from '../../../features/leads/components/AddLeadSlideOver';
 import { Lead, LeadStage } from '../../../types/api';
@@ -67,11 +66,7 @@ export default function LeadsPage() {
   };
 
   if (!hasAccess) {
-    return (
-      <AppShell>
-        <AccessRestricted message="You do not have permission to view or manage leads." />
-      </AppShell>
-    );
+    return <AccessRestricted message="You do not have permission to view or manage leads." />;
   }
 
   const filteredLeads = leads.filter(lead => {
@@ -85,8 +80,7 @@ export default function LeadsPage() {
   });
 
   return (
-    <AppShell>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header & Controls */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -369,6 +363,5 @@ export default function LeadsPage() {
         {/* Add Lead Drawer */}
         <AddLeadSlideOver isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} />
       </div>
-    </AppShell>
   );
 }

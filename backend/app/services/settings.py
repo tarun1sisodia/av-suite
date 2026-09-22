@@ -8,6 +8,9 @@ from app.schemas.settings import ClinicSettingsUpdate
 from app.services.audit import AuditLogService
 
 
+from app.core.cache import clinic_cache
+
+
 class SettingsValidationError(Exception):
     """Raised when validation fails for clinic settings updates."""
 
@@ -35,9 +38,15 @@ class ClinicSettingsService:
     async def get_settings(self, clinic_id: UUID) -> Clinic:
         """Retrieve clinic settings and branding details."""
 
+        cache_key = f"clinic_settings:{clinic_id}"
+        cached = clinic_cache.get(cache_key)
+        if cached is not None:
+            return cached
+
         clinic = await self.clinic_repository.get_by_id(clinic_id)
         if clinic is None:
             raise SettingsNotFoundError(f"Clinic '{clinic_id}' not found.")
+        clinic_cache.set(cache_key, clinic, ttl_seconds=300)
         return clinic
 
     async def update_settings(
@@ -55,6 +64,10 @@ class ClinicSettingsService:
             return clinic
 
         updated_clinic = await self.clinic_repository.update(clinic, update_data)
+        await self.clinic_repository.session.commit()
+        clinic_cache.delete(f"clinic_settings:{clinic_id}")
+        clinic_cache.delete(f"clinic_branding:{clinic_id}")
+
 
         # Record audit log event safely
         await self.audit_service.log_event(

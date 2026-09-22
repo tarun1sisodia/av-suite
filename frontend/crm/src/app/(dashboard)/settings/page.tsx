@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { AppShell } from '../../../components/layout/AppShell';
 import { DataTable, Column } from '../../../components/ui/DataTable';
 import { AccessRestricted } from '../../../components/ui/AccessRestricted';
 import { AuditLog, User } from '../../../types/api';
@@ -204,16 +203,13 @@ export default function SettingsPage() {
   ];
 
   if (!hasAccess || (!canViewClinic && !canViewUsers && !canViewAudit)) {
-    return (
-      <AppShell>
-        <AccessRestricted message="Clinic settings are restricted." />
-      </AppShell>
-    );
+    return <AccessRestricted message="Clinic settings are restricted." />;
   }
 
   return (
-    <AppShell>
+    <>
       <div className="space-y-6">
+
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Clinic Settings</h1>
           <p className="text-sm text-slate-500">Manage clinic preferences, branding, users & audit logs</p>
@@ -426,6 +422,7 @@ export default function SettingsPage() {
         title={`Log Details: ${selectedLogForDetails?.action || ''}`}
         data={selectedLogForDetails?.details || {}}
       />
-    </AppShell>
+    </>
   );
 }
+

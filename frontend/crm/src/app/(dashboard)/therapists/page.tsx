@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { AppShell } from '../../../components/layout/AppShell';
 import { DataTable, Column } from '../../../components/ui/DataTable';
 import { useCanAccessModule, useHasCapability } from '../../../config/permissions';
 import { useUsers } from '../../../features/users/api';
@@ -22,11 +21,7 @@ export default function TherapistsPage() {
   const [isSlideOpen, setIsSlideOpen] = useState(false);
 
   if (!hasAccess) {
-    return (
-      <AppShell>
-        <AccessRestricted message="Therapists directory and payroll is restricted." />
-      </AppShell>
-    );
+    return <AccessRestricted message="Therapists directory and payroll is restricted." />;
   }
 
   const columns: Column<User>[] = [
@@ -38,8 +33,7 @@ export default function TherapistsPage() {
   ];
 
   return (
-    <AppShell>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Therapists Directory & Payroll</h1>
@@ -66,6 +60,5 @@ export default function TherapistsPage() {
           defaultRole="therapist"
         />
       </div>
-    </AppShell>
   );
 }

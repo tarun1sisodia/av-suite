@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import httpx
 import logging
+from datetime import date
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -28,12 +29,14 @@ from app.schemas.booking import (
     AppointmentRequestResponse,
     AppointmentRequestUpdate,
     PublicClinicBrandingResponse,
+    SlotAvailabilityResponse,
 )
 from app.services.booking import (
     BookingNotFoundError,
     BookingService,
     BookingValidationError,
 )
+
 
 from app.schemas.envelope import ResponseEnvelope
 
@@ -48,7 +51,7 @@ async def verify_turnstile_token(token: str | None, client_ip: str | None) -> bo
     if not token:
         return False
     try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
+        async with httpx.AsyncClient(timeout=3.0) as client:
             resp = await client.post(
                 "https://challenges.cloudflare.com/turnstile/v0/siteverify",
                 data={
@@ -103,6 +106,31 @@ async def get_public_clinic_branding(
         ) from exc
 
 
+@router.get(
+    "/booking/availability/{clinic_slug}",
+    response_model=ResponseEnvelope[SlotAvailabilityResponse],
+)
+async def get_public_slot_availability(
+    clinic_slug: str,
+    target_date: Annotated[date, Query(alias="date")],
+    service: BookingServiceDep,
+    therapist_id: Annotated[UUID | None, Query(alias="therapist_id")] = None,
+) -> ResponseEnvelope[SlotAvailabilityResponse]:
+    """Public unauthenticated endpoint returning busy appointment slots for a clinic on a specific date."""
+
+    try:
+        availability = await service.get_slot_availability(
+            clinic_slug_or_id=clinic_slug,
+            target_date=target_date,
+            therapist_id=therapist_id,
+        )
+        return ResponseEnvelope(data=availability)
+    except BookingNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
+        ) from exc
+
+
 @router.post(
     "/booking/request",
     response_model=ResponseEnvelope[AppointmentRequestResponse],
@@ -114,6 +142,7 @@ async def create_public_appointment_request(
     request: Request,
     clinic_slug: Annotated[str | None, Query(alias="clinic_slug")] = None,
     clinic_id: Annotated[UUID | None, Query(alias="clinic_id")] = None,
+    idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
 ) -> ResponseEnvelope[AppointmentRequestResponse]:
     """Public unauthenticated endpoint to submit an appointment request using clinic slug or clinic id."""
 
@@ -127,10 +156,13 @@ async def create_public_appointment_request(
 
     if clinic_slug is not None:
         try:
-            request_record = await service.create_request_by_slug(clinic_slug, payload)
-            return ResponseEnvelope(
-                data=AppointmentRequestResponse.model_validate(request_record)
+            request_record = await service.create_request_by_slug(
+                clinic_slug, payload, idempotency_key=idempotency_key
             )
+            resp = AppointmentRequestResponse.model_validate(request_record)
+            if "[Returning Patient:" in (request_record.notes or ""):
+                resp.is_returning_patient = True
+            return ResponseEnvelope(data=resp)
         except BookingNotFoundError as exc:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
@@ -141,10 +173,13 @@ async def create_public_appointment_request(
             ) from exc
     elif clinic_id is not None:
         try:
-            request_record = await service.create_request(clinic_id, payload)
-            return ResponseEnvelope(
-                data=AppointmentRequestResponse.model_validate(request_record)
+            request_record = await service.create_request(
+                clinic_id, payload, idempotency_key=idempotency_key
             )
+            resp = AppointmentRequestResponse.model_validate(request_record)
+            if "[Returning Patient:" in (request_record.notes or ""):
+                resp.is_returning_patient = True
+            return ResponseEnvelope(data=resp)
         except BookingNotFoundError as exc:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
@@ -158,6 +193,7 @@ async def create_public_appointment_request(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="clinic_slug or clinic_id query parameter is required for public booking request.",
         )
+
 
 
 @router.put(
