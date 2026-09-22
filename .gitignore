@@ -65,3 +65,6 @@ record.html
 !.env.example
 !.env.*.example
 
+# FreeLLMAPI Gateway
+freellmapi/
+
